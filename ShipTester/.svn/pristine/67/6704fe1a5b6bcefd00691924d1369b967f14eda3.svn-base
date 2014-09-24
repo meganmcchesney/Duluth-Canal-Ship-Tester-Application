@@ -1,0 +1,122 @@
+﻿namespace ShipTester.Tests.Helper
+{
+    using System;
+    using System.Collections.Generic;
+    using Extensions;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using ShipTester.Helper;
+    using ShipTester.Model;
+
+    /// <summary>
+    /// Class that runs tests on the GeoHelper class
+    /// </summary>
+    public class GeoHelperTests
+    {
+        /// <summary>
+        /// A ship set "fifty" miles from the harbor, it's actually 38 miles.
+        /// </summary>
+        private static Position testShipPosition = ShipPositions.FiftyMilesFromDuluthCanal;
+
+        /// <summary>
+        /// A destination set to Duluth
+        /// </summary>
+        private static Position testDestination = Ports.Duluth;
+
+        /// <summary>
+        /// Checks if a value is within percentage margin of another value.
+        /// </summary>
+        /// <param name="target">The calculated theoretical value</param>
+        /// <param name="actual">The real value </param>
+        /// <param name="percentage">The percentage, given as a fraction</param>
+        /// <returns>True if the target is within X% margin</returns>
+        public static bool IsTargetNumberWithinPercent(double target, double actual, double percentage)
+        {
+            if (percentage >= 1) percentage = percentage / 100;
+            var upperBound = actual + (actual * percentage);
+            var lowerbound = actual - (actual * percentage);
+
+            return target >= lowerbound && target <= upperBound;
+        }
+
+        /// <summary>
+        /// Set up all conditions for testing 
+        /// call the method or trigger being tested
+        /// Verify the results are correct
+        /// Test each distance formula and their conversions
+        /// </summary>
+        [TestClass]
+        public class DistanceFormulasTest
+        {
+            /// <summary>
+            /// use http://boulter.com/gps/distance/ for expected distance calculations
+            /// </summary>
+            private double expectedDistanceInMiles = 37.89;
+
+            /// <summary>
+            /// Expected distance in kilometers
+            /// </summary>
+            private double expectedDistanceInKM = 60.98;
+
+            /// <summary>
+            /// Expected distance in Nautical miles
+            /// </summary>
+            private double expectedDistanceInNmi = 32.93;
+
+            /// <summary>
+            /// The successful Miles distance calculation test
+            /// </summary>
+            [TestMethod]
+            public void SuccessfulDistanceCalculationInMiles()
+            {
+                double calculatedDistance = GeoHelper.DistanceBetweenCoord(testDestination, testShipPosition);
+                double percentageMargin = .05;
+                Assert.IsTrue(IsTargetNumberWithinPercent(calculatedDistance, this.expectedDistanceInMiles, percentageMargin));
+            }
+
+            /// <summary>
+            /// The successful Kilometers distance calculation test
+            /// </summary>
+            [TestMethod]
+            public void SuccessfulDistanceCalculationInKilometers()
+            {
+                double calculatedDistance = GeoHelper.DistanceBetweenCoord(testDestination, testShipPosition, GeoHelper.Units.KiloMeter);
+                double percentageMargin = .05;
+                Assert.IsTrue(IsTargetNumberWithinPercent(calculatedDistance, this.expectedDistanceInKM, percentageMargin));
+            }
+
+            /// <summary>
+            /// The successful Nautical Miles distance calculation test
+            /// </summary>
+            [TestMethod]
+            public void SuccessfulDistanceCalculationInNauticalMiles()
+            {
+                double calculatedDistance = GeoHelper.DistanceBetweenCoord(testDestination, testShipPosition, GeoHelper.Units.NauticalMiles);
+                double percentageMargin = .05;
+                Assert.IsTrue(IsTargetNumberWithinPercent(calculatedDistance, this.expectedDistanceInNmi, percentageMargin));
+            }            
+        }
+
+        /// <summary>
+        /// Tests the GetBearing method and any related methods in GeoHelper
+        /// </summary>
+        [TestClass]
+        public class BearingFormulaTest
+        {
+            /// <summary>
+            /// Expected bearing according to http://www.movable-type.co.uk/scripts/latlong.html
+            /// </summary>
+            private double expectedBearing = 250;
+
+            /// <summary>
+            /// A successful bearing calculation assertion
+            /// </summary>
+            [TestMethod]
+            public void SuccessfulBearingCalculation()
+            {
+                var bearing  = GeoHelper.GetBearing(testShipPosition, testDestination);
+                var percentageMargin = .01;
+                Assert.IsTrue(IsTargetNumberWithinPercent(bearing, this.expectedBearing, percentageMargin));
+            }
+        }
+    }
+}

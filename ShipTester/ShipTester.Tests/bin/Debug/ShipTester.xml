@@ -1,0 +1,822 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ShipTester</name>
+    </assembly>
+    <members>
+        <member name="T:ShipTester.Extensions.DoubleExtensions">
+            <summary>
+            conversion methods for doing math
+            </summary>
+        </member>
+        <member name="M:ShipTester.Extensions.DoubleExtensions.ToRadians(System.Double)">
+            <summary>
+            converts degrees to radians
+            </summary>
+            <param name="value">degree value</param>
+            <returns>radian value</returns>
+        </member>
+        <member name="M:ShipTester.Extensions.DoubleExtensions.ToDegrees(System.Double)">
+            <summary>
+            converts radians to degrees
+            </summary>
+            <param name="value">radian value</param>
+            <returns>degree value</returns>
+        </member>
+        <member name="T:ShipTester.Extensions.EnumerableExtensions">
+            <summary>
+            Class to supplement enumerable operations
+            </summary>
+        </member>
+        <member name="M:ShipTester.Extensions.EnumerableExtensions.ToCsv``1(System.Collections.Generic.IEnumerable{``0},System.IO.StreamWriter)">
+            <summary>
+            Generates comma separated value doc of all shipTest permutations
+            </summary>
+            <param name="objects">list of permutations</param>
+            <param name="writer">where to write the file</param>
+            <typeparam name="T">type of shipTest</typeparam>
+        </member>
+        <member name="T:ShipTester.Extensions.StringExtensions">
+            <summary>
+            Operations on type string
+            </summary>
+        </member>
+        <member name="F:ShipTester.Extensions.StringExtensions.Seperator">
+            <summary>
+            Strings are joined with a comma
+            </summary>
+        </member>
+        <member name="M:ShipTester.Extensions.StringExtensions.Join(System.Collections.Generic.IEnumerable{System.Object},System.String)">
+            <summary>
+            Joins objects of type string around a seperator
+            </summary>
+            <param name="objects">any object of type string</param>
+            <param name="seperator">constant, defined above</param>
+            <returns>Joined string</returns>
+        </member>
+        <member name="T:ShipTester.Extensions.TypeExtensions">
+            <summary>
+            Enumerates defined types within project
+            </summary>
+        </member>
+        <member name="M:ShipTester.Extensions.TypeExtensions.GetFieldValues``1(System.Type)">
+            <summary>
+            Uses reflection to enumerate Areas, Ports, ShipPositions, etc.
+            </summary>
+            <typeparam name="T">The type array of the objects</typeparam>
+            <param name="type">the type of the object</param>
+            <returns> An array of objects sharing the same type</returns>
+        </member>
+        <member name="T:ShipTester.Helper.GeoHelper">
+            <summary>
+            Methods needed for the calculation of ship position relative to ports.
+            </summary>
+        </member>
+        <member name="F:ShipTester.Helper.GeoHelper.EarthRadiusMiles">
+            <summary>
+             measure of earth's radius in miles
+             http://www.wolframalpha.com/input/?i=radius%20of%20earth
+            </summary>
+        </member>
+        <member name="F:ShipTester.Helper.GeoHelper.EarthRadiusKm">
+            <summary>
+            measure of earth's radius in kilometers
+            </summary>
+        </member>
+        <member name="F:ShipTester.Helper.GeoHelper.EarthRadiusNmi">
+            <summary>
+            measure of earth's radius in nautical miles
+            </summary>
+        </member>
+        <member name="M:ShipTester.Helper.GeoHelper.GetBearing(ShipTester.Model.Position,ShipTester.Model.Position)">
+            <summary>
+            Returns bearing to port (definition bearing: degree measure a ship must follow to a defined position)
+            </summary>
+            <param name="ship">ship position</param>
+            <param name="port">port position</param>
+            <returns>radian measure of ship's bearing to port</returns>
+        </member>
+        <member name="M:ShipTester.Helper.GeoHelper.IsPointInPolygon(ShipTester.Model.Position,ShipTester.Model.Polygon)">
+            <summary>
+            Method to determine if a given position is inside a defined geographical area
+            </summary>
+            <param name="ship">ship position</param>
+            <param name="area">polygon defined by geographic area</param>
+            <returns>true / false</returns>
+        </member>
+        <member name="M:ShipTester.Helper.GeoHelper.DistanceBetweenCoord(ShipTester.Model.Position,ShipTester.Model.Position,ShipTester.Helper.GeoHelper.Units)">
+            <summary>
+            Distance between the coordinates. Defaults to using miles unless a unit is specified.
+            </summary>
+            <param name="destLatLong">the destination position</param>
+            <param name="currLatLong">the position of the ship</param>
+            <param name="unit">optional enum that selects the units, defaults to miles</param>
+            <returns>approximate distance between to points on a sphere (earth).</returns>
+        </member>
+        <member name="M:ShipTester.Helper.GeoHelper.DistanceBetweenCoord(ShipTester.Model.Position,ShipTester.Model.Position,System.Double)">
+            <summary>
+            Distance between the two positions.
+            </summary>
+            <param name="destination">The destination position</param>
+            <param name="shipPosition">the ship position</param>
+            <param name="radius">the radius of earth</param>
+            <returns>approximate distance between to points on a sphere (earth)</returns>
+        </member>
+        <member name="T:ShipTester.Helper.GeoHelper.Units">
+            <summary>
+            Distance calculations can be performed in KM, M, or NMi
+            </summary>
+        </member>
+        <member name="F:ShipTester.Helper.GeoHelper.Units.KiloMeter">
+            <summary>
+            Metric unit of measurement
+            </summary>
+        </member>
+        <member name="F:ShipTester.Helper.GeoHelper.Units.Miles">
+            <summary>
+            Imperial unit of measurement
+            </summary>
+        </member>
+        <member name="F:ShipTester.Helper.GeoHelper.Units.NauticalMiles">
+            <summary>
+            Nautical unit of measurement
+            </summary>
+        </member>
+        <member name="T:ShipTester.Model.Areas">
+            <summary>
+            Areas are geographic regions defined by latitude and longitude of points
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.Areas.DuluthSuperiorHarbor">
+            <summary>
+            Define area for Duluth / Superior Harbor
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.Areas.StLouisBay">
+            <summary>
+            Defines area for St. Louis Bay, an area inside Duluth / Superior Harbor
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.Areas.All">
+            <summary>
+            Provides access to array of all defined polygons
+            </summary>
+        </member>
+        <member name="T:ShipTester.Model.DuluthCanalEtaResult">
+            <summary>
+            test property used before we had derived Eta in place
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.DuluthCanalEtaResult.Null">
+            <summary>
+            value returned when a derived Eta is not calculated
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.DuluthCanalEtaResult.Calculated">
+            <summary>
+            value returned when a derived Eta is calculated
+            </summary>
+        </member>
+        <member name="T:ShipTester.Model.NavigationalStatus">
+            <summary>
+            AIS data field "Navigation Status"
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.NavigationalStatus.Other">
+            <summary>
+            Test Navigational Status, Not Underway
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.NavigationalStatus.Underway">
+            <summary>
+            Test Navigational Status, shortened form of "underway using engine" / "underway by sail"
+            </summary>
+        </member>
+        <member name="T:ShipTester.Model.Polygon">
+            <summary>
+            A polygon represents an area defined by an array of positions. This implementation by Patrick Mullen
+            is useful when you have many points that need to be tested against the same polygon. For efficiency
+            purposes please make the polygon convex.
+            </summary>
+        </member>
+        <member name="M:ShipTester.Model.Polygon.#ctor(System.String,ShipTester.Model.Position[])">
+            <summary>
+            Initializes a new instance of the Polygon class.
+            </summary>
+            <param name="name">The name of the polygon</param>
+            <param name="positions">the corners of the polygon</param>
+        </member>
+        <member name="M:ShipTester.Model.Polygon.op_Equality(ShipTester.Model.Polygon,ShipTester.Model.Polygon)">
+            <summary>
+            Overloaded == operator
+            </summary>
+            <param name="a">Left side</param>
+            <param name="b">Right side</param>
+            <returns>True if equal</returns>
+        </member>
+        <member name="M:ShipTester.Model.Polygon.op_Inequality(ShipTester.Model.Polygon,ShipTester.Model.Polygon)">
+            <summary>
+            Overloaded != operator
+            </summary>
+            <param name="a">Left side</param>
+            <param name="b">Right Side</param>
+            <returns>True if not equal</returns>
+        </member>
+        <member name="M:ShipTester.Model.Polygon.GetHashCode">
+            <summary>
+            Gets hash code of Name
+            </summary>
+            <returns>Numeric hash value</returns>
+        </member>
+        <member name="M:ShipTester.Model.Polygon.Equals(System.Object)">
+            <summary>
+            Compares the polygon object to another object.
+            </summary>
+            <param name="obj">the object to be compared</param>
+            <returns>true if the two objects are the same</returns>
+        </member>
+        <member name="M:ShipTester.Model.Polygon.Equals(ShipTester.Model.Polygon)">
+            <summary>
+            Compares the polygon's name to another polygon's name
+            </summary>
+            <param name="other">the polygon to be compared</param>
+            <returns>true if the two polygons share a name</returns>
+        </member>
+        <member name="M:ShipTester.Model.Polygon.ToString">
+            <summary>
+            Converts the polygon to a string
+            </summary>
+            <returns>The name of the polygon</returns>
+        </member>
+        <member name="P:ShipTester.Model.Polygon.Name">
+            <summary>
+            Gets or sets the name of the polygon
+            </summary>
+        </member>
+        <member name="P:ShipTester.Model.Polygon.PolySides">
+            <summary>
+            Gets or sets how many sides the polygon has
+            </summary>
+        </member>
+        <member name="P:ShipTester.Model.Polygon.PolyX">
+            <summary>
+            Gets or sets the X coordinates of a vertice
+            </summary>
+        </member>
+        <member name="P:ShipTester.Model.Polygon.PolyY">
+            <summary>
+            Gets or sets Y coordinate of a vertice
+            </summary>
+        </member>
+        <member name="T:ShipTester.Model.Ports">
+            <summary>
+            Defines all relevant ports in Lake Superior. Each port is defined as a position with latitude, longitude, and a name.
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.Ports.Duluth">
+            <summary>
+            The port of Duluth
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.Ports.Superior">
+            <summary>
+            The port of Superior
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.Ports.ThunderBay">
+            <summary>
+            The port of ThunderBay
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.Ports.SaultSteMarie">
+            <summary>
+            The port of SaultSaintMarie (SouthEast Lake Superior)
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.Ports.SilverBay">
+            <summary>
+            The port of Silver Bay
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.Ports.TwoHarbors">
+            <summary>
+            The port of Two Harbors
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.Ports.All">
+            <summary>
+            Returns all ports in the class via reflection
+            </summary>
+        </member>
+        <member name="T:ShipTester.Model.ShipPositions">
+            <summary>
+            Represents a ship on the globe. Uses the position class. Each ship has a name, latitude, and longitude.
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.ShipPositions.StLouisBay">
+            <summary>
+            A position inside St. Louis Bay
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.ShipPositions.EastLakeSuperior">
+            <summary>
+            A position that is farther than 50 miles out of Duluth
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.ShipPositions.FiftyMilesFromDuluthCanal">
+            <summary>
+            A position roughly fifty miles from the Duluth canal.
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.ShipPositions.TwentyMilesFromDuluthCanal">
+            <summary>
+            A position roughly twenty miles from the Duluth canal.
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.ShipPositions.OutsideDuluthCanal">
+            <summary>
+            A position outside the Duluth canal.
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.ShipPositions.HalfwayBetweenDuluthAndSuperior">
+            <summary>
+            A position roughly half-way between the Duluth canal and Superior.
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.ShipPositions.OutsideSuperiorCanal">
+            <summary>
+            A position outside the Superior canal.
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.ShipPositions.DuluthSuperiorDeadZone">
+            <summary>
+            A position that is roughly halfway between the Duluth and Superior canals, within the harbor.
+            </summary>
+        </member>
+        <member name="F:ShipTester.Model.ShipPositions.All">
+            <summary>
+            Returns all ship positions in the class via reflection
+            </summary>
+        </member>
+        <member name="T:ShipTester.Permutation.EnumerablePermutator`2">
+            <summary>
+            Creates permutations of all
+            </summary>
+            <typeparam name="TValue">ShipTest permutator</typeparam>
+            <typeparam name="TResult">IEnumerable ShipTest</typeparam>
+        </member>
+        <member name="T:ShipTester.Permutation.Permutator`2">
+            <summary>
+            Collects and ensures creation all ship test permutator properties
+            </summary>
+            <typeparam name="TValue">ship test permutator class</typeparam>
+            <typeparam name="TResult">ship test</typeparam>
+        </member>
+        <member name="T:ShipTester.Permutation.IPermutator`1">
+            <summary>
+            Interface to use Ship Tester's Permutator
+            </summary>
+            <typeparam name="T">ship Test</typeparam>
+        </member>
+        <member name="M:ShipTester.Permutation.IPermutator`1.GetPermutations">
+            <summary>
+            Interface to GetPermutations in Permutator.cs
+            </summary>
+            <returns>permutations of Ship Test Permutator properties</returns>
+        </member>
+        <member name="P:ShipTester.Permutation.IPermutator`1.Create">
+            <summary>
+            Gets or sets create function for Permutator
+            </summary>
+        </member>
+        <member name="M:ShipTester.Permutation.Permutator`2.GetPermutations">
+            <summary>
+            Gets ship test permutation case by case
+            </summary>
+            <returns>permutations of Ship Test Permutator properties</returns>
+        </member>
+        <member name="M:ShipTester.Permutation.Permutator`2.GetValues">
+            <summary>
+            Gets the values of ship test permutations
+            </summary>
+            <returns>permutations of Ship Test Permutator properties</returns>
+        </member>
+        <member name="M:ShipTester.Permutation.Permutator`2.CreateInputPermutations">
+            <summary>
+            If permutations of ship test permutator do not exist, it will create and activate the creation of new permutations
+            </summary>
+            <returns>ship test permutations</returns>
+        </member>
+        <member name="P:ShipTester.Permutation.Permutator`2.Create">
+            <summary>
+            Gets or sets Create property for an enumerable list of permutations
+            </summary>
+        </member>
+        <member name="P:ShipTester.Permutation.Permutator`2.Permute">
+            <summary>
+            Gets or sets Action type, Permute, that does not return a value
+            </summary>
+        </member>
+        <member name="M:ShipTester.Permutation.EnumerablePermutator`2.GetValues">
+            <summary>
+            retrieves all values of permutations
+            </summary>
+            <returns>IEnumerable array of shipTest permutations</returns>
+        </member>
+        <member name="P:ShipTester.Permutation.EnumerablePermutator`2.Values">
+            <summary>
+            Gets or sets properties of the permutator
+            </summary>
+        </member>
+        <member name="T:ShipTester.Extensions.PermutationExtensions">
+            <summary>
+            As the ship test builds its permutations, the extensions class will perform maintenance operations on the list
+            </summary>
+        </member>
+        <member name="M:ShipTester.Extensions.PermutationExtensions.GetPermutations``1(System.Collections.Generic.IEnumerable{ShipTester.Permutation.IPermutator{``0}})">
+            <summary>
+            Returns last test case from permutations
+            </summary>
+            <param name="source">A single, complete test case of ship test permutations</param>
+            <typeparam name="T">ship Test</typeparam>
+            <returns>Removes current test case and moves on to next case</returns>
+            <exception cref="T:System.InvalidOperationException">Source must include ship test permutations</exception>
+        </member>
+        <member name="T:ShipTester.Model.Position">
+            <summary>
+            Represents a position on a globe. It has a name, a latitude, and a longitude.
+            </summary>
+        </member>
+        <member name="M:ShipTester.Model.Position.#ctor(System.String,System.Double,System.Double)">
+            <summary>
+            Initializes a new instance of the Position class.
+            </summary>
+            <param name="name">The name of the position (e.g "Gammies house")</param>
+            <param name="latitude">The latitude of the position.</param>
+            <param name="longitude">The longitude of the position</param>
+        </member>
+        <member name="M:ShipTester.Model.Position.op_Equality(ShipTester.Model.Position,ShipTester.Model.Position)">
+            <summary>
+            Overloaded == operator
+            </summary>
+            <param name="a">Left side</param>
+            <param name="b">Right side</param>
+            <returns>True if the object is equal</returns>
+        </member>
+        <member name="M:ShipTester.Model.Position.op_Inequality(ShipTester.Model.Position,ShipTester.Model.Position)">
+            <summary>
+            Overloaded != operator
+            </summary>
+            <param name="a">Left side</param>
+            <param name="b">Right side</param>
+            <returns>True if the object is not equal</returns>
+        </member>
+        <member name="M:ShipTester.Model.Position.GetHashCode">
+            <summary>
+            Gets hash code of Name
+            </summary>
+            <returns>Numeric hash value</returns>
+        </member>
+        <member name="M:ShipTester.Model.Position.Equals(System.Object)">
+            <summary>
+            Overridden Equals method
+            </summary>
+            <param name="obj">The position object to compare against</param>
+            <returns>True of the two positions are equal</returns>
+        </member>
+        <member name="M:ShipTester.Model.Position.Equals(ShipTester.Model.Position)">
+            <summary>
+            Compares the position object with another position
+            </summary>
+            <param name="other">The position to be compared with</param>
+            <returns>True if their names are equal</returns>
+        </member>
+        <member name="M:ShipTester.Model.Position.ToString">
+            <summary>
+            ToString method
+            </summary>
+            <returns>Returns the name of the position</returns>
+        </member>
+        <member name="P:ShipTester.Model.Position.Name">
+            <summary>
+            Gets or sets the Name
+            </summary>
+        </member>
+        <member name="P:ShipTester.Model.Position.Latitude">
+            <summary>
+            Gets or sets the Latidude
+            </summary>
+        </member>
+        <member name="P:ShipTester.Model.Position.Longitude">
+            <summary>
+            Gets or sets the Longitude
+            </summary>
+        </member>
+        <member name="T:ShipTester.Program">
+            <summary>
+            The program.
+            </summary>
+        </member>
+        <member name="M:ShipTester.Program.Main">
+            <summary>
+            The main.
+            </summary>
+        </member>
+        <member name="M:ShipTester.Program.RunShipTests">
+            <summary>
+            The run ship tests.
+            </summary>
+        </member>
+        <member name="T:ShipTester.Extensions.SerializationExtensions">
+            <summary>
+            Provides methods for serializing objects.
+            </summary>
+        </member>
+        <member name="M:ShipTester.Extensions.SerializationExtensions.Serialize(System.Object)">
+            <summary>
+            Serializes the object
+            </summary>
+            <param name="identifier">The object being serialized</param>
+            <returns>A serialized object</returns>
+        </member>
+        <member name="M:ShipTester.Extensions.SerializationExtensions.Deserialize(System.Byte[])">
+            <summary>
+            Deserializes a bit stream
+            </summary>
+            <param name="data">the bit stream</param>
+            <returns>a deserialized object</returns>
+        </member>
+        <member name="M:ShipTester.Extensions.SerializationExtensions.Deserialize``1(System.Byte[])">
+            <summary>
+            Deserialize using reflection
+            </summary>
+            <typeparam name="T">The type of the object</typeparam>
+            <param name="data">the bit stream to be deserialized</param>
+            <returns>The object data cast to type T</returns>
+        </member>
+        <member name="T:ShipTester.ShipTesting.ShipTest">
+            <summary>
+            This object acts as the ship object in the Duluth Canal Application, holds the ship properties
+            </summary>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTest.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ShipTester.ShipTesting.ShipTest"/> class
+            ShipTest.Eta must always be in the future 
+            </summary>
+        </member>
+        <member name="P:ShipTester.ShipTesting.ShipTest.Position">
+            <summary>
+            Gets or sets Location of ship
+            </summary>
+        </member>
+        <member name="P:ShipTester.ShipTesting.ShipTest.Speed">
+            <summary>
+            Gets or sets Speed of ship
+            </summary>
+        </member>
+        <member name="P:ShipTester.ShipTesting.ShipTest.NavigationalStatus">
+            <summary>
+            Gets or sets Navigation Status of a ship
+            </summary>
+        </member>
+        <member name="P:ShipTester.ShipTesting.ShipTest.Heading">
+            <summary>
+            Gets or sets Ship heading / course in degrees
+            </summary>
+        </member>
+        <member name="P:ShipTester.ShipTesting.ShipTest.Destination">
+            <summary>
+            Gets or sets Reported ship destination
+            </summary>
+        </member>
+        <member name="P:ShipTester.ShipTesting.ShipTest.Eta">
+            <summary>
+            Gets or sets Time a ship will arrive at port
+            </summary>
+        </member>
+        <member name="P:ShipTester.ShipTesting.ShipTest.CanalEntryTimestamp">
+            <summary>
+            Gets or sets Timestamp for when a ship first reports its position inside Duluth Harbor
+            </summary>
+        </member>
+        <member name="P:ShipTester.ShipTesting.ShipTest.DerivedEta">
+            <summary>
+            Gets or sets Calculated time of arrival for a ship at Duluth Canal
+            </summary>
+        </member>
+        <member name="P:ShipTester.ShipTesting.ShipTest.DuluthCanalEtaResult">
+            <summary>
+            Gets or sets Property for testing purposes only, was being used before the Derived Eta was populated
+            </summary>
+        </member>
+        <member name="P:ShipTester.ShipTesting.ShipTest.Evaluation">
+            <summary>
+            Gets or sets Pass / fail property for test results
+            </summary>
+        </member>
+        <member name="P:ShipTester.ShipTesting.ShipTest.Tally">
+            <summary>
+            Gets or sets Count of passing evaluations
+            </summary>
+        </member>
+        <member name="P:ShipTester.ShipTesting.ShipTest.Note">
+            <summary>
+            Gets or sets Notes on a shiptest object
+            </summary>
+        </member>
+        <member name="T:ShipTester.ShipTesting.ShipTestEvaluator">
+            <summary>
+            Evaluates the ship test and fills the evaluation property on a ship test object
+            </summary>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestEvaluator.Evaluate(System.Collections.Generic.IEnumerable{ShipTester.ShipTesting.ShipTest})">
+            <summary>
+            Every ship test built by the permutator will be evaluated in this class
+            </summary>
+            <param name="shipTests">shipTest object</param>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestEvaluator.Evaluate(ShipTester.ShipTesting.ShipTest)">
+            <summary>
+            Evaluation method and logic. Similar to shipTest Processor logic
+            First, only evaluate ship that report navigational status == underway
+            Next, ask if ship is within 50 miles of the Duluth Harbor
+            Locate ship inside or outside harbor
+            For ships in the harbor, treat ships in St. Louis Bay differently than other ships
+            For ships outside the harbor, populate derived eta according to bearing to nearest port
+            </summary>
+            <param name="shipTest">shipTest object</param>
+        </member>
+        <member name="T:ShipTester.ShipTesting.ShipTestExtensions">
+            <summary>
+            Methods specific to operations on the ship test object
+            </summary>
+        </member>
+        <member name="F:ShipTester.ShipTesting.ShipTestExtensions.HeadingTowardThreshold">
+            <summary>
+            Degree threshold for use when determining if a ship is moving toward Duluth
+            </summary>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestExtensions.IsInDuluthSuperiorHarbor(ShipTester.ShipTesting.ShipTest)">
+            <summary>
+            Uses point in polygon test to determine if a ship is located in the Duluth Superior Harbor
+            </summary>
+            <param name="shipTest">shipTest object</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestExtensions.IsMovingToward(ShipTester.ShipTesting.ShipTest,ShipTester.Model.Position)">
+            <summary>
+            If the a ship's bearing to a given position is less than 90 degrees away from exact heading needed to get to the port,
+            Then we says that a ship is moving toward that port
+            </summary>
+            <param name="shipTest">shipTest object</param>
+            <param name="position">Location of port that ship may be moving toward</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestExtensions.IsInStLouisBay(ShipTester.ShipTesting.ShipTest)">
+            <summary>
+            Is a ship located in St. Louis Bay?
+            </summary>
+            <param name="shipTest">shipTest object</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestExtensions.IsUnderway(ShipTester.ShipTesting.ShipTest)">
+            <summary>
+            Does the ship's reported navigational status contain the string "underway"?
+            </summary>
+            <param name="shipTest">shipTest object</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestExtensions.IsWithinFiftyMilesOfDuluth(ShipTester.ShipTesting.ShipTest)">
+            <summary>
+            Is a ship within 50 miles of the Duluth Canal?
+            </summary>
+            <param name="shipTest">shipTest object</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestExtensions.IsDestinationDuluth(ShipTester.ShipTesting.ShipTest)">
+            <summary>
+            Is a ship reporting a destination of Duluth?
+            </summary>
+            <param name="shipTest">shipTest object</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestExtensions.IsMovingTowardDuluth(ShipTester.ShipTesting.ShipTest)">
+            <summary>
+            If the a ship's bearing to a given position is less than 90 degrees away from exact heading needed to get to the port,
+            Then we says that a ship is moving toward that port
+            </summary>
+            <param name="shipTest">shipTest object</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestExtensions.IsInDuluthSuperiorHarborForMoreThanHour(ShipTester.ShipTesting.ShipTest)">
+            <summary>
+            Has a ship been in the Duluth Superior Harbor for more than an hour?
+            Reasoning: We use this test because ships have a variety of movements inside the harbor.
+            If a ship has entered the harbor recently, we're going to ignore its movements for a certain length of time
+            </summary>
+            <param name="shipTest">shipTest object</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestExtensions.IsHeadingTowardDuluth(ShipTester.ShipTesting.ShipTest)">
+            <summary>
+            Does the ship's heading put it on course to enter Duluth Canal?
+            Ships report numerous false destinations. Therefore, we use this method 
+            to check a ship's actual heading against the bearing to the two nearest ports
+            and make a determination whether or not the ship will actually use Duluth Canal
+            </summary>
+            <param name="shipTest">shipTest object</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="T:ShipTester.ShipTesting.ShipTestPermutator">
+            <summary>
+            Defines the permutations of ship test objects
+            </summary>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestPermutator.GetShipTests">
+            <summary>
+            Gets sets of ship test object permutations for test
+            </summary>
+            <returns>ship test object permutations</returns>
+        </member>
+        <member name="T:ShipTester.ShipTesting.ShipTestProcessor">
+            <summary>
+            Contains logic for sorting through ship test permutations
+            Goal is to derive an Eta to Duluth Canal for every ship predicted to use the canal
+            </summary>
+        </member>
+        <member name="F:ShipTester.ShipTesting.ShipTestProcessor.CanalEntryTimestampOffset">
+            <summary>
+            This is the offset that will be applied to a canal entry timestamp based on the length of time a ship is required to have been in the harbor
+            </summary>
+        </member>
+        <member name="F:ShipTester.ShipTesting.ShipTestProcessor.SixtyDegreesAsRadians">
+            <summary>
+            calculation to convert 60 degrees to radians
+            </summary>
+        </member>
+        <member name="F:ShipTester.ShipTesting.ShipTestProcessor.SinSixtyDegrees">
+            <summary>
+            calculation for Sin of 60 degrees
+            </summary>
+        </member>
+        <member name="F:ShipTester.ShipTesting.ShipTestProcessor.CosSixtyDegrees">
+            <summary>
+            calculation for Cos of 60 degrees
+            </summary>
+        </member>
+        <member name="F:ShipTester.ShipTesting.ShipTestProcessor.DataLag">
+            <summary>
+            calculation to convert the time of datalag to a Timestamp
+            current data lag = 4 minutes
+            </summary>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestProcessor.Execute(System.Collections.Generic.IEnumerable{ShipTester.ShipTesting.ShipTest})">
+            <summary>
+            Executes ship test processing logic for every ship test permutation
+            </summary>
+            <param name="shipTests">list of ship test permutations</param>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestProcessor.Update(ShipTester.ShipTesting.ShipTest)">
+            <summary>
+            Method to populate a derived Eta for ships we deem will use Duluth Canal
+            </summary>
+            <param name="shipTest">ship test permutation</param>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestProcessor.ProcessStLouisBayEtaToDuluth(ShipTester.ShipTesting.ShipTest)">
+            <summary>
+            Ships in St. Louis Bay have derived Eta populated in a specific manner, based on triangulation from St. Louis Bay
+            The method uses a 60/60/60 triangle between ship position and Duluth Canal position
+            </summary>
+            <param name="shipTest">a ship test object that is located in St. Louis Bay</param>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestProcessor.ProcessEtaToDuluth(ShipTester.ShipTesting.ShipTest)">
+            <summary>
+            To populate a derived Eta, we must first determine the distance to the Duluth Canal from a given ship position
+            </summary>
+            <param name="shipTest">a ship test object that has a distance to canal</param>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestProcessor.GetLagAdjustedDerivedEta(System.Double,System.Double)">
+            <summary>
+            Once a ship's distance to the canal is known, calculate when the ship will reach the canal
+            and adjust for data lag within the system
+            </summary>
+            <param name="distance">a ship test object that has a distance to canal</param>
+            <param name="speed">a ship test reported speed</param>
+            <returns>Derived Eta time</returns>
+        </member>
+        <member name="T:ShipTester.ShipTesting.ShipTestWriter">
+            <summary>
+            Writes ship test to a file
+            </summary>
+        </member>
+        <member name="M:ShipTester.ShipTesting.ShipTestWriter.Write(System.Collections.Generic.IEnumerable{ShipTester.ShipTesting.ShipTest},System.String)">
+            <summary>
+            Writes ship tests to a csv file
+            </summary>
+            <param name="shipTests">list of ship Test permutations</param>
+            <param name="path">where the file should be saved</param>
+            <returns>a csv file</returns>
+        </member>
+    </members>
+</doc>

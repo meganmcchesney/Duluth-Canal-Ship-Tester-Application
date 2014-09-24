@@ -1,0 +1,28 @@
+﻿using System;
+
+namespace ShipTester.Model
+{
+    [Serializable]
+    public class ShipTest
+    {
+        public Position Position { get; set; }
+
+        public double Speed { get; set; }
+
+        public Port FromPort { get; set; }
+
+        public Port ToPort { get; set; }
+
+        public Port Heading { get; set; }
+
+        public Port Destination { get; set; }
+
+        public DuluthCanalETAResult? DuluthCanalETAResult { get; set; }
+
+        public bool? Pass { get; set; }
+
+        public int Tally { get; set; }
+
+        public string Note { get; set; }
+    }
+}

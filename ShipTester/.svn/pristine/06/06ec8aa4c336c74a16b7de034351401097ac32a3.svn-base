@@ -1,0 +1,108 @@
+﻿namespace ShipTester.Model
+{
+    using System;
+
+    /// <summary>
+    /// Represents a position on a globe. It has a name, a latitude, and a longitude.
+    /// </summary>
+    [Serializable]
+    public class Position
+    {
+        /// <summary>
+        /// Initializes a new instance of the Position class.
+        /// </summary>
+        /// <param name="name">The name of the position (e.g "Gammies house")</param>
+        /// <param name="latitude">The latitude of the position.</param>
+        /// <param name="longitude">The longitude of the position</param>
+        public Position(string name, double latitude, double longitude)
+        {
+            this.Name = name;
+            this.Latitude = latitude;
+            this.Longitude = longitude;
+        }
+
+        #region Public Properties
+
+        /// <summary>
+        /// Gets or sets the Name
+        /// </summary>
+        public string Name { get; protected set; }
+
+        /// <summary>
+        /// Gets or sets the Latidude
+        /// </summary>
+        public double Latitude { get; protected set; }
+
+        /// <summary>
+        /// Gets or sets the Longitude
+        /// </summary>
+        public double Longitude { get; protected set; }
+        #endregion
+
+        /// <summary>
+        /// Overloaded == operator
+        /// </summary>
+        /// <param name="a">Left side</param>
+        /// <param name="b">Right side</param>
+        /// <returns>True if the object is equal</returns>
+        public static bool operator ==(Position a, Position b)
+        {
+            if ((object)a == null)
+            {
+                throw new ArgumentNullException();
+            }
+            return a.Equals(b);
+        }
+
+        /// <summary>
+        /// Overloaded != operator
+        /// </summary>
+        /// <param name="a">Left side</param>
+        /// <param name="b">Right side</param>
+        /// <returns>True if the object is not equal</returns>
+        public static bool operator !=(Position a, Position b)
+        {
+            return !(a == b);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Name.GetHashCode();
+        }
+
+        /// <summary>
+        /// Overridden Equals method
+        /// </summary>
+        /// <param name="obj">The position object to compare against</param>
+        /// <returns>True of the two positions are equal</returns>
+        public override bool Equals(object obj)
+        {
+            return obj is Position && this.Equals((Position)obj);
+        }
+
+        /// <summary>
+        /// Compares the position object with another position
+        /// </summary>
+        /// <param name="other">The position to be compared with</param>
+        /// <returns>True if their names are equal</returns>
+        public bool Equals(Position other)
+        {
+            if (ReferenceEquals(null, other))
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            return this.Name.Equals(other.Name);
+        }
+
+        /// <summary>
+        /// ToString method
+        /// </summary>
+        /// <returns>Returns the name of the position</returns>
+        public override string ToString()
+        {
+            return this.Name;
+        }
+    }
+}

@@ -1,0 +1,20 @@
+﻿using System.Diagnostics;
+using System.Linq;
+
+namespace ShipTester
+{
+    class Program
+    {
+        static void Main()
+        {
+            // Generate a collection of ship tests
+            var shipTests = ShipTestPermutator.GetShips().ToArray();
+
+            // Process all the ship tests
+            ShipTestProcessor.Execute(shipTests);
+
+            // Write out and view the ship tests
+            Process.Start("Excel", ShipTestWriter.Write(shipTests));
+        }
+    }
+}

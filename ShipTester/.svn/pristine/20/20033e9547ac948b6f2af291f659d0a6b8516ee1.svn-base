@@ -1,0 +1,15 @@
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace ShipTester.Extensions
+{
+    public static class StringExtensions
+    {
+        private const string Seperator = ",";
+
+        public static string Join(this IEnumerable<object> objects, string seperator = Seperator)
+        {
+            return string.Join(seperator, objects.ToArray());
+        }
+    }
+}

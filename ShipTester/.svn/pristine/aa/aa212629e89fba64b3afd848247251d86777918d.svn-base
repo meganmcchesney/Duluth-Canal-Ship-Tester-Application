@@ -1,0 +1,103 @@
+﻿// <copyright file="ShipTestExtensions.cs" company="Saturn Systems">
+// ShipTester, ShipTester
+// by
+// Saturn Systems, 11/09/2014
+// Megan McChesney
+// </copyright>
+using System;
+using System.Linq;
+using ShipTester.Helper;
+using ShipTester.Model;
+
+namespace ShipTester
+{
+    public static class ShipTestExtensions
+    {
+        private const double HeadingTowardThreshold = 90;
+
+        public static bool IsInDuluthSuperiorHarbor(this ShipTest shipTest)
+        {
+            return GeoHelper.IsPointInPolygon(shipTest.Position, Areas.DuluthSuperiorHarbor);
+        }
+
+        public static bool IsMovingToward(this ShipTest shipTest, Position position)
+        {
+            var bearing = GeoHelper.GetBearing(shipTest.Position, position);
+            var difference = Math.Abs(shipTest.Heading - bearing);
+            return difference <= HeadingTowardThreshold;
+        }
+
+        public static bool IsInStLouisBay(this ShipTest shipTest)
+        {
+            return GeoHelper.IsPointInPolygon(shipTest.Position, Areas.StLouisBay);
+        }
+
+        public static bool IsUnderway(this ShipTest shipTest)
+        {
+            return shipTest.NavigationalStatus == NavigationalStatus.Underway;
+        }
+
+        public static bool IsWithinFiftyMilesOfDuluth(this ShipTest shipTest)
+        {
+            return GeoHelper.DistanceBetweenCoord(shipTest.Position, Ports.Duluth) <= 50;
+        }
+
+        public static bool IsDestinationDuluth(this ShipTest shipTest)
+        {
+            return shipTest.Destination == Ports.Duluth;
+        }
+
+        public static bool IsMovingTowardDuluth(this ShipTest shipTest)
+        {
+            return shipTest.IsMovingToward(Ports.Duluth);
+        }
+
+        public static bool IsInDuluthSuperiorHarborForMoreThanHour(this ShipTest shipTest)
+        {
+            return shipTest.CanalEntryTimestamp.HasValue && shipTest.CanalEntryTimestamp < DateTime.UtcNow.AddHours(-1);
+        }
+
+        public static bool IsHeadingTowardDuluth(this ShipTest shipTest)
+        {
+            var twoNearestPortsAndBearing = Ports.All.Select(p =>{
+                var bearing = GeoHelper.GetBearing(shipTest.Position, p);
+                var adjustment = Math.Abs(bearing - shipTest.Heading);
+                if (adjustment > 180) adjustment = 360 - adjustment;
+                return new { 
+                    Position = p,
+                    Bearing = bearing,
+                    Adjustment = adjustment
+                };       
+             }).OrderBy(
+                p=> p.Adjustment
+             ).Take(2).ToArray();
+
+
+            var firstPort = twoNearestPortsAndBearing[0];
+            var secondPort = twoNearestPortsAndBearing[1];
+
+            var portBearingDiff = Math.Abs(firstPort.Bearing - secondPort.Bearing);
+
+            var weight = 1 / 2D;
+            if (shipTest.Destination == firstPort.Position) weight = 2 / 3D;
+            else if (shipTest.Destination == secondPort.Position) weight = 1 / 3D;
+
+            var threshold = weight * portBearingDiff;
+
+            try
+            {
+                Position nearestPort = null;
+                if (firstPort.Adjustment <= threshold) nearestPort = firstPort.Position;
+                else if (secondPort.Adjustment <= threshold) nearestPort = secondPort.Position;
+                else if (shipTest.IsMovingToward(firstPort.Position)) nearestPort = firstPort.Position;
+
+                if (nearestPort != null) return nearestPort == Ports.Duluth;
+                return false;
+            }
+            catch (ArgumentNullException)
+            {
+                return false;
+            }
+        }
+    }
+}

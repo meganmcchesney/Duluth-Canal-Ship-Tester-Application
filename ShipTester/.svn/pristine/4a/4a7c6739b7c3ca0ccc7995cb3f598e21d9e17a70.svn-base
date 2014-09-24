@@ -1,0 +1,80 @@
+﻿using System;
+using System.Linq;
+using ShipTester.Helper;
+using ShipTester.Model;
+using System.Linq;
+
+namespace ShipTester
+{
+    public static class ShipTestExtensions
+    {
+        private const double HeadingTowardThreshold = 90;
+
+        public static bool IsInDuluthSuperiorHarbor(this ShipTest shipTest)
+        {
+            var shipPositionsInsideHarbor = new string[]{
+                "DuluthHarborBasin",
+                "SuperiorBay",
+                "StLouisBay",
+                "DuluthSuperiorDeadZone"
+                };
+
+            var shipPos = shipTest.Position.ToString();
+            //need to take away the lat and long - only look at name of port
+
+            foreach (string x in shipPositionsInsideHarbor)
+            {
+                if (shipPos.Contains(x))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool IsMovingToward(this ShipTest shipTest, Position position)
+        {
+            var heading = GeoHelper.GetHeading(shipTest.Position, position);
+            var difference = Math.Abs(shipTest.Heading - heading);
+            return difference <= HeadingTowardThreshold;
+        }
+
+        public static bool IsInStLouisBay(this ShipTest shipTest)
+        {
+            var shipPos = shipTest.Position.ToString();
+            if (shipPos == "StLouisBay") return true;
+            return false;
+        }
+
+        public static bool IsUnderway(this ShipTest shipTest)
+        {
+            return shipTest.NavigationalStatus == NavigationalStatus.Underway;
+        }
+
+        public static bool IsWithinFiftyMilesOfDuluth(this ShipTest shipTest)
+        {
+            return GeoHelper.DistanceBetweenCoord(shipTest.Position, Ports.Duluth) <= 50;
+        }
+
+        public static bool IsDestinationDuluth(this ShipTest shipTest)
+        {
+            return shipTest.Destination == Ports.Duluth;
+        }
+
+        public static bool IsMovingTowardDuluth(this ShipTest shipTest)
+        {
+            return shipTest.IsMovingToward(Ports.Duluth);
+        }
+
+        public static bool IsHeadingTowardDuluth(this ShipTest shipTest)
+        {
+            return true;
+            throw new NotImplementedException();
+        }
+
+        public static bool IsInDuluthSuperiorHarborForMoreThanHour(this ShipTest shipTest)
+        {
+            return shipTest.CanalEntryTimestamp.HasValue && shipTest.CanalEntryTimestamp < DateTime.Now.AddHours(-1);
+        }
+    }
+}

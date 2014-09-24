@@ -1,0 +1,53 @@
+﻿using ShipTester.Model;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace ShipTester
+{
+    public static class ShipTestExtensions
+    {
+        private static readonly IDictionary<PositionAndHeading, IEnumerable<Port>> HeadingTowards =
+            new Dictionary<PositionAndHeading, IEnumerable<Port>> {
+                {
+                    new PositionAndHeading {
+                        Position = Position.WestLakeSuperior,
+                        Heading = Port.Duluth
+                    },
+                    new [] { Port.Duluth, Port.Supperior }
+                }, {
+                    new PositionAndHeading {
+                        Position = Position.WestLakeSuperior,
+                        Heading = Port.Supperior
+                    },
+                    new [] { Port.Duluth, Port.Supperior }
+                }, {
+                    new PositionAndHeading {
+                        Position = Position.WestLakeSuperior,
+                        Heading = Port.ThunderBay
+                    },
+                    new [] { Port.ThunderBay, Port.SaultSteMarie }
+                }, {
+                    new PositionAndHeading {
+                        Position = Position.WestLakeSuperior,
+                        Heading = Port.SaultSteMarie
+                    },
+                    new [] { Port.ThunderBay, Port.SaultSteMarie }
+                }
+            };
+
+        public static bool IsInDuluthSuperiorPort(this ShipTest shipTest)
+        {
+            return false;
+        }
+
+        public static bool IsHeadingToward(this ShipTest shipTest, Port port)
+        {
+            var positionAndHeading = new PositionAndHeading {
+                Position = shipTest.Position,
+                Heading = shipTest.Heading
+            };
+
+            return HeadingTowards[positionAndHeading].Contains(port);
+        }
+    }
+}

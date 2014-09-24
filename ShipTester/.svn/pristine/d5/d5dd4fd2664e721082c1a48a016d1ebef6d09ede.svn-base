@@ -1,0 +1,18 @@
+﻿using System;
+using System.Linq;
+
+namespace ShipTester.Extensions
+{
+    public static class TypeExtensions
+    {
+        public static T[] GetFieldValues<T>(this Type type)
+        {
+            return type
+                .GetFields()
+                .Select(p => p.GetValue(null))
+                .Where(p => p != null)
+                .Cast<T>()
+                .ToArray();
+        }
+    }
+}

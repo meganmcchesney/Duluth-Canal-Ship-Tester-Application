@@ -1,0 +1,89 @@
+﻿namespace ShipTester
+{
+    using System;
+    using System.Collections.Generic;
+    using ShipTester.Extensions;
+    using ShipTester.Helper;
+    using ShipTester.Model;
+
+    public static class ShipTestProcessor
+    {
+        private static readonly double SixtyDegreesAsRadians = 60d.ToRadians();
+        
+        private static readonly double SinSixtyDegrees = Math.Sin(SixtyDegreesAsRadians);
+
+        private static readonly double CosSixtyDegrees = Math.Cos(SixtyDegreesAsRadians);
+
+        private static readonly TimeSpan DataLag = TimeSpan.FromMinutes(4);
+
+        public static void Execute(IEnumerable<ShipTest> shipTests)
+        {
+            foreach (var shipTest in shipTests)
+                Update(shipTest);
+        }
+
+        private static void Update(ShipTest shipTest)
+        {
+            var inHarbor = shipTest.IsInDuluthSuperiorHarbor();
+            if (inHarbor && !shipTest.CanalEntryTimestamp.HasValue)
+            {
+                shipTest.CanalEntryTimestamp = DateTime.UtcNow.AddHours(-1.6);
+            }
+            else if (!inHarbor)
+            {
+                shipTest.CanalEntryTimestamp = null;
+            }
+
+            if (shipTest.IsUnderway())
+            {
+                if (shipTest.IsWithinFiftyMilesOfDuluth())
+                {
+                    if (shipTest.IsInDuluthSuperiorHarborForMoreThanHour())
+                    {
+                        if (shipTest.IsInStLouisBay())
+                        {
+                            ProcessStLouisBayEtaToDuluth(shipTest);
+                        }
+                        else if (shipTest.IsMovingTowardDuluth())
+                        {
+                            ProcessEtaToDuluth(shipTest);
+                        }
+                    }
+                    else if (!inHarbor && shipTest.IsHeadingTowardDuluth())
+                    {
+                        ProcessEtaToDuluth(shipTest);
+                    }
+                }
+                else if (shipTest.IsDestinationDuluth() && shipTest.IsMovingTowardDuluth())
+                {
+                    shipTest.DerivedEta = shipTest.Eta;
+                }
+            }
+        }
+
+        private static void ProcessStLouisBayEtaToDuluth(ShipTest shipTest)
+        {
+            ////first, calculate the direct distance to the canal and use it as the hypotenuse of a 30/60/90 triangle
+            var directLineDistance = GeoHelper.DistanceBetweenCoord(Ports.Duluth, shipTest.Position);
+            ////next, find lengths of the opposite and adjacent sides (convert angle to radians)
+            var shipSideDistance = directLineDistance * SinSixtyDegrees;
+            var canalSideDistance = directLineDistance * CosSixtyDegrees;
+            ////last, d=rt provides time to travel in hours
+            var totalDistance = shipSideDistance + canalSideDistance;
+
+            shipTest.DerivedEta = GetLagAdjustedDerivedEta(totalDistance, shipTest.Speed);
+        }
+
+        private static void ProcessEtaToDuluth(ShipTest shipTest)
+        {
+            var directLineDistance = GeoHelper.DistanceBetweenCoord(Ports.Duluth, shipTest.Position);
+            
+            shipTest.DerivedEta = GetLagAdjustedDerivedEta(directLineDistance, shipTest.Speed);
+        }
+
+        private static DateTime GetLagAdjustedDerivedEta(double distance, double speed)
+        {
+            return DateTime.UtcNow.AddHours(distance / speed) + DataLag;
+        }
+    }
+}

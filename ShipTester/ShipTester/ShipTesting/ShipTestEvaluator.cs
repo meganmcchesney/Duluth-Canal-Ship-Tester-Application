@@ -1,0 +1,55 @@
+﻿namespace ShipTester.ShipTesting
+{
+    using System;
+    using System.Collections.Generic;
+
+    /// <summary>
+    /// Evaluates the ship test and fills the evaluation property on a ship test object
+    /// </summary>
+    public static class ShipTestEvaluator
+    {
+        /// <summary>
+        /// Every ship test built by the permutator will be evaluated in this class
+        /// </summary>
+        /// <param name="shipTests">shipTest object</param>
+        public static void Evaluate(IEnumerable<ShipTest> shipTests)
+        {
+            foreach (var shipTest in shipTests)
+                Evaluate(shipTest);
+        }
+
+        /// <summary>
+        /// Evaluation method and logic. Similar to shipTest Processor logic
+        /// First, only evaluate ship that report navigational status == underway
+        /// Next, ask if ship is within 50 miles of the Duluth Harbor
+        /// Locate ship inside or outside harbor
+        /// For ships in the harbor, treat ships in St. Louis Bay differently than other ships
+        /// For ships outside the harbor, populate derived eta according to bearing to nearest port
+        /// </summary>
+        /// <param name="shipTest">shipTest object</param>
+        public static void Evaluate(ShipTest shipTest)
+        {
+            if (shipTest.IsUnderway())
+            {
+                if (shipTest.IsWithinFiftyMilesOfDuluth())
+                {  
+                    if (shipTest.IsInDuluthSuperiorHarborForMoreThanHour())
+                    {
+                        shipTest.Evaluation = shipTest.IsInStLouisBay() || shipTest.IsMovingTowardDuluth();
+                    }
+                    else
+                    {
+                        shipTest.Evaluation = !shipTest.IsInDuluthSuperiorHarbor() && shipTest.IsHeadingTowardDuluth();
+                    }
+                }
+                else
+                {
+                    shipTest.Evaluation = shipTest.IsDestinationDuluth() && shipTest.IsMovingTowardDuluth();
+                }
+            }
+
+            shipTest.Evaluation = shipTest.Evaluation == shipTest.DerivedEta.HasValue;
+            shipTest.Tally = Convert.ToInt32(shipTest.Evaluation);
+        }
+    }
+}

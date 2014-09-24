@@ -1,0 +1,25 @@
+﻿using System;
+using ShipTester.Extensions;
+using ShipTester.Model;
+
+namespace ShipTester.Helper
+{
+    public static class GeoHelper
+    {
+        public static double GetHeading(Position ship, Position port)
+        {
+            // Algorithm courtesy of Chris Veness
+            // http://www.movable-type.co.uk/scripts/latlong.html
+            var φ1 = ship.Latitude.ToRadians();
+            var φ2 = port.Latitude.ToRadians();
+            var Δλ = (port.Longitude - ship.Longitude).ToRadians();
+
+            var y = Math.Sin(Δλ) * Math.Cos(φ2);
+            var x = Math.Cos(φ1) * Math.Sin(φ2) -
+                    Math.Sin(φ1) * Math.Cos(φ2) * Math.Cos(Δλ);
+            var θ = Math.Atan2(y, x);
+
+            return (θ.ToDegrees() + 360) % 360;
+        }
+    }
+}

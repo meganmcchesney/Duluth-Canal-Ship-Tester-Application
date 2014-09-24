@@ -1,0 +1,8 @@
+﻿namespace ShipTester.Model
+{
+    public enum DuluthCanalETAResult
+    {
+        Null,
+        Calculated
+    }
+}

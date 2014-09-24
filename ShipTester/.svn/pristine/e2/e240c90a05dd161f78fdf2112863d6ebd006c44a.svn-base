@@ -1,0 +1,41 @@
+﻿using System.Collections.Generic;
+using ShipTester.Extensions;
+using ShipTester.Helper;
+using ShipTester.Model;
+using ShipTester.Permutation;
+
+namespace ShipTester
+{
+    public static class ShipTestPermutator
+    {
+        public static IEnumerable<ShipTest> GetShipTests()
+        {
+            return new IPermutator<ShipTest>[] {
+                new EnumerablePermutator<double, ShipTest> {
+                    Values = new [] { 12.5 },
+                    Permute = (speed, shipTest) => shipTest.Speed = speed
+                },
+                new EnumerablePermutator<Position, ShipTest> {
+                    Values = ShipPositions.All,
+                    Permute = (position, shipTest) => shipTest.Position = position
+                },
+                new EnumerablePermutator<Position, ShipTest> {
+                    Values = Ports.All,
+                    Permute = (port, shipTest) => shipTest.FromPort = port
+                },
+                new EnumerablePermutator<Position, ShipTest> {
+                    Values = Ports.All,
+                    Permute = (port, shipTest) => shipTest.ToPort = port
+                },
+                new EnumerablePermutator<Position, ShipTest> {
+                    Values = Ports.All,
+                    Permute = (port, shipTest) => shipTest.Heading = GeoHelper.GetHeading(shipTest.Position, port)
+                },
+                new EnumerablePermutator<Position, ShipTest> {
+                    Values = Ports.All,
+                    Permute = (port, shipTest) => shipTest.Destination = port
+                }
+            }.GetPermutations();
+        }
+    }
+}

@@ -1,0 +1,22 @@
+﻿using System.Linq;
+using ShipTester.Extensions;
+
+namespace ShipTester.Model
+{
+    public static class Ports
+    {
+        public static Position Duluth = new Position("Duluth", 46.779066, -92.092389);
+
+        public static Position Superior = new Position("Superior", 46.706075, -92.016733);
+
+        public static Position ThunderBay = new Position("ThunderBay", 48.399537, -89.222818);
+
+        public static Position SaultSteMarie = new Position("SaultSteMarie", 46.500474, -84.375107);
+
+        public static Position SilverBay = new Position("SilverBay", 47.269668, -91.266915);
+
+        public static Position TwoHarbors = new Position("TwoHarbors", 47.016193, -91.673390);
+
+        public static Position[] All = typeof(Ports).GetFieldValues<Position>();
+    }
+}

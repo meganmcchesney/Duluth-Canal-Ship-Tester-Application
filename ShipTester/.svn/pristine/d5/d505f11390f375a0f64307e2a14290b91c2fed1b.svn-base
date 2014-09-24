@@ -1,0 +1,37 @@
+﻿using ShipTester.Model;
+using System;
+using System.Collections.Generic;
+
+namespace ShipTester
+{
+    public static class ShipTestEvaluator
+    {
+        public static void Evaluate(IEnumerable<ShipTest> shipTests)
+        {
+            foreach (var shipTest in shipTests)
+                Evaluate(shipTest);
+        }
+
+        public static void Evaluate(ShipTest shipTest)
+        {
+            var distanceToCanal =
+                shipTest.DirectDistanceToLiftBridge =
+                 Helper.GeoHelper.DistanceBetweenCoord(ShipPositions.AerialLiftBridge, shipTest.Position);
+
+            if (shipTest.DuluthCanalETAResult == DuluthCanalETAResult.Calculated)
+            {
+                shipTest.Pass = (shipTest.ToPort.Equals(Ports.Duluth) && shipTest.IsHeadingToward(Ports.Duluth)) || (shipTest.IsInStLouisBay() ||
+                    (shipTest.IsInDuluthSuperiorPort() && !shipTest.IsInStLouisBay() && shipTest.IsHeadingToward(Ports.Duluth)) ||
+                    (distanceToCanal > 50 && shipTest.Destination.Equals(Ports.Duluth)));
+            }
+            else
+            {
+                shipTest.Pass = !shipTest.ToPort.Equals(Ports.Duluth) || !shipTest.IsHeadingToward(Ports.Duluth) ||
+                    (shipTest.IsInDuluthSuperiorPort() && !shipTest.IsInStLouisBay() && shipTest.IsHeadingToward(Ports.Superior)) ||
+                    (distanceToCanal > 50 && !shipTest.Destination.Equals(Ports.Duluth));
+            }
+
+            shipTest.Tally = Convert.ToInt32(shipTest.Pass);
+        }
+    }
+}

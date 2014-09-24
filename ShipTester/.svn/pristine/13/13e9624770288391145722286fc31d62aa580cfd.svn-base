@@ -1,0 +1,49 @@
+﻿using System;
+using System.Linq;
+using ShipTester.Helper;
+using ShipTester.Model;
+using System.Linq;
+
+namespace ShipTester
+{
+    public static class ShipTestExtensions
+    {
+        private const double HeadingTowardThreshold = 90;
+
+        public static bool IsInDuluthSuperiorPort(this ShipTest shipTest)
+        {
+            var shipPositionsInsideHarbor = new string[]{
+                "DuluthHarborBasin",
+                "SuperiorBay",
+                "StLouisBay",
+                "DuluthSuperiorDeadZone"
+                };
+
+            var shipPos = shipTest.Position.ToString();
+            //need to take away the lat and long - only look at name of port
+
+            foreach (string x in shipPositionsInsideHarbor)
+            {
+                if (shipPos.Contains(x))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool IsHeadingToward(this ShipTest shipTest, Position position)
+        {
+            var heading = GeoHelper.GetHeading(shipTest.Position, position);
+            var difference = Math.Abs(shipTest.Heading - heading);
+            return difference <= HeadingTowardThreshold;
+        }
+
+        public static bool IsInStLouisBay(this ShipTest shipTest)
+        {
+            var shipPos = shipTest.Position.ToString();
+            if (shipPos == "StLouisBay") return true;
+            return false;
+        }
+    }
+}

@@ -1,0 +1,7 @@
+﻿namespace ShipTester.Model
+{
+    public enum Position
+    {
+        WestLakeSuperior
+    }
+}

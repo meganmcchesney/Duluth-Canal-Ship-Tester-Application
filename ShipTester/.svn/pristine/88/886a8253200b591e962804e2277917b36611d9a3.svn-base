@@ -1,0 +1,65 @@
+﻿using System;
+using ShipTester.Model;
+
+namespace ShipTester.Helper
+{
+    public static class PositionHelper
+    {
+        public static double GetHeading(Position ship, Position port)
+        {
+            //double angle = Math.Atan2(port.Longitude - ship.Longitude, port.Latitude - ship.Latitude);
+            //angle = angle * (180 / Math.PI);
+            //return (360 - angle) % 360;
+
+            var y = Math.Sin(PositionHelper.ToRadians(port.Longitude - ship.Longitude)) * Math.Cos(PositionHelper.ToRadians(port.Latitude));
+            var x = Math.Cos(PositionHelper.ToRadians(ship.Latitude)) * Math.Sin(PositionHelper.ToRadians(port.Latitude)) -
+                    Math.Sin(PositionHelper.ToRadians(ship.Latitude)) * Math.Cos(PositionHelper.ToRadians(port.Latitude)) * Math.Cos(PositionHelper.ToRadians(port.Longitude - ship.Longitude));
+            var result = PositionHelper.ToDegrees(Math.Atan2(y, x));
+            //var result = PositionHelper.ATan2(ship, port) * (180 / Math.PI);
+            if (result < 0) result += 360;
+            return result;
+        }
+
+        public static double ATan2(Position ship, Position port)
+        {
+            var dlat = port.Latitude - ship.Latitude;
+            var dlon = port.Longitude - ship.Longitude;
+            var y = Math.Sin(port.Longitude - ship.Longitude) * Math.Cos(port.Latitude);
+            var x = Math.Cos(ship.Latitude) * Math.Sin(port.Latitude) - Math.Sin(ship.Latitude) * Math.Cos(port.Latitude) * Math.Cos(port.Longitude - ship.Longitude);
+            var result = 0.0;
+
+            if (y > 0)
+            {
+                if(x>0) result = Math.Atan(y/x);
+                if (x < 0) result = Math.PI - Math.Atan(-y / x);
+                if (x == 0) result = Math.PI/2;
+            }
+            if (y < 0)
+            {
+                if (x > 0) result = -(Math.Atan(y / x));
+                if (x < 0) result = Math.Atan(y / x) - Math.PI;
+                if (x == 0) result = 2 * Math.PI / 3;
+            }
+            if (y == 0)
+            {
+                if (x > 0) result = 0;
+                if (x < 0) result = Math.PI;
+                if (x == 0) result = 1337;
+            }
+            return result;
+
+        }
+
+        public static double ToDegrees(double radian)
+        {
+            return radian * (180 / Math.PI);
+        }
+
+        public static double ToRadians(double degree)
+        {
+            return degree * (180 / Math.PI);
+        }
+
+    }
+}
+    

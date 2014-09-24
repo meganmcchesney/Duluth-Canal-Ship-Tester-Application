@@ -1,0 +1,158 @@
+﻿using System;
+using System.Globalization;
+using ShipTester.Helper;
+using ShipTester.Model;
+using System.Collections.Generic;
+
+namespace ShipTester
+{
+    public static class ShipTestProcessor
+    {
+        public static void Execute(IEnumerable<ShipTest> shipTests)
+        {
+            foreach (var shipTest in shipTests)
+                Update(shipTest);
+        }
+
+        private static void Update(ShipTest shipTest)
+        {
+            //timestamp for when a ship first reports a position inside the harbor
+            shipTest.CanalEntryTimestamp = MarkShipEvent(shipTest);
+
+            var navStatus =
+                shipTest.NavigationalStatus.ToLower().Replace(" ", "").Trim().ToString(CultureInfo.InvariantCulture);
+            //only tracking ships that report as underway
+            if (navStatus.Contains("underway"))
+            {
+                //for ships inside the Duluth Harbor
+                if (shipTest.Position.Longitude < -92.00000 && shipTest.CanalEntryTimestamp != null)
+                {
+                    //if ship is in St. Louis Bay, we treat it differently than if it is anywhere else in the harbor
+                    if (CheckStLouisBayZone(shipTest))
+                    {
+                        DeriveEtaFromStLouisBay(shipTest);
+                    }
+                    else
+                    {
+                        CheckShipHeading(shipTest);
+                    }
+                }
+                //for ships outside the Duluth harbor
+                else
+                {
+                    //distance (in miles) that a ship is from the lift bridge
+                    var distanceToCanal =
+                        shipTest.DirectDistanceToLiftBridge =
+                            Helper.GeoHelper.DistanceBetweenCoord(ShipPositions.AerialLiftBridge, shipTest.Position);
+                    if (distanceToCanal >= 50)
+                    {
+                        //update DerivedEta to reported Eta for ships over 50 miles away
+                        shipTest.DerivedEta = shipTest.Eta;
+                    }
+                    else
+                    {
+                        //check if a ship is actually going to Duluth and update DerivedEta
+                        NearestPort(shipTest);
+                    }
+                }
+            }
+
+            if (!shipTest.IsInDuluthSuperiorPort() &&
+                //ship stated destination is Duluth and the heading is less than 90 degrees difference or
+                (shipTest.Destination.Equals(Ports.Duluth) && shipTest.IsHeadingToward(shipTest.Destination)) ||
+                //ship heading is less that 90 degrees from Duluth heading and more than 90 degrees from stated destination
+                (shipTest.IsHeadingToward(Ports.Duluth) && !shipTest.IsHeadingToward(shipTest.Destination)))
+                //then CanalETA populates as calculated
+                shipTest.DuluthCanalETAResult = DuluthCanalETAResult.Calculated;
+
+        }
+
+        //returns the timestamp of when a ship first reports a position Inside Harbor
+        private static DateTime? MarkShipEvent(ShipTest shipTest)
+        {
+            if (GeoHelper.IsPointInPolygon(shipTest.Position, Areas.InsideHarbor))
+            {
+                shipTest.CanalEntryTimestamp = DateTime.Now;
+            }
+            else
+            {
+                shipTest.CanalEntryTimestamp = null;
+            }
+            return shipTest.CanalEntryTimestamp;
+        }
+
+        //returns boolean InStLouisBayZone
+        private static bool CheckStLouisBayZone(ShipTest shipTest)
+        {
+            bool InStLouisBayZone = GeoHelper.IsPointInPolygon(shipTest.Position, Areas.StLouisBay);
+            return InStLouisBayZone;
+        }
+
+        //returns DerivedEta of a ship in St. Louis Bay
+        private static DateTime? DeriveEtaFromStLouisBay(ShipTest shipTest)
+        {
+            //ships travelling to Duluth Canal from SLBay must turn around a big peninsula. 
+            //This turn increases the direct line Eta by ?how much?
+            var directLineDistance = 
+                shipTest.DirectDistanceToLiftBridge =
+                            Helper.GeoHelper.DistanceBetweenCoord(ShipPositions.AerialLiftBridge, shipTest.Position);
+            var courseCorrection = 90;
+
+            // reference stlouisbaymovement 
+
+
+
+            return shipTest.DerivedEta;
+        }
+
+
+        //returns DerivedEta of ships inside the harbor, but not in St. Louis Bay
+        private static Position CheckShipHeading(ShipTest shipTest)
+        {
+            /* Brandon thinks we should use nearest port based on heading differential and/or the 90 degree check
+             
+                if (310 < ship.heading <= 95 degrees){ 
+                  ship.destination = Duluth;
+                  deriveShipEta(Port Duluth);
+                } elseif (95 < ship.heading <= 230 degrees) { 
+                   ship.destination = Superior;
+                } else {
+                   ship.destination = StLouisBay;
+                }*/
+
+            //Once a ship in StLouisBayZone changes heading such that heading is nearer to superior than duluth canal, 
+            //derivedETA is no longer calculated
+
+            return shipTest.Destination;
+        }
+
+        //evaluates a ship outside the harbor and within 50 miles of Canal for course to Duluth
+        private static void NearestPort(ShipTest shipTest)
+        {
+            CompareHeadingToAllKnownPorts(shipTest);
+            //order the list from least change to most change - Superior, Duluth, Two Harbors, Silver Bay
+
+            //var portDiff = nearest port 1 - next nearest port 2
+            //if(reported heading is within 2/3(portDiff && port = Duluth){
+            //    DeriveShipEta(shipTest)
+
+            //}
+        }
+
+        //returns an ordered list of nearest ports to NearestPorts()
+        private static List<string> CompareHeadingToAllKnownPorts(ShipTest shipTest)
+        {
+            var portList = new List<string>();
+
+            return portList;
+        }
+
+        //returns DerivedEta of ship outside harbor that we believe is heading to Duluth
+        private static DateTime? DeriveShipEta(ShipTest shipTest)
+        {
+            //calculate derivedETA according to distance and speed
+            //we may want to account for data lag  (-4 minutes)
+            return shipTest.DerivedEta;
+        }
+    }
+}

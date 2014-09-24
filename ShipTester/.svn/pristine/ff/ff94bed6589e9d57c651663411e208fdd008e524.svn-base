@@ -1,0 +1,58 @@
+﻿namespace ShipTester.Model
+{
+    using ShipTester.Extensions;
+
+    /// <summary>
+    /// Represents a ship on the globe. Uses the position class. Each ship has a name, latitude, and longitude.
+    /// </summary>
+    public static class ShipPositions
+    {
+        ////public static Position NotInLakeSuperior = new Position("NotInLakeSuperior", 0, 0);
+        ////public static Position CentralLakeSuperior = new Position("CentralLakeSuperior", 47.557902, -88.033034);
+
+        /// <summary>
+        /// A ship that is farther than 50 miles out of Duluth
+        /// </summary>
+        public static readonly Position EastLakeSuperior = new Position("EastLakeSuperior", 46.809366, -84.816787);
+
+        /// <summary>
+        /// A ship roughly fifty miles from the Duluth canal.
+        /// </summary>
+        public static readonly Position FiftyMilesFromDuluthCanal = new Position("FiftyMilesFromDuluthCanal", 46.965166, -91.339919);
+
+        /// <summary>
+        /// A ship roughly twenty miles from the Duluth canal.
+        /// </summary>
+        public static readonly Position TwentyMilesFromDuluthCanal = new Position("TwentyMilesFromDuluthCanal", 46.8797, -91.7072);
+
+        /// <summary>
+        /// A ship outside the Duluth canal.
+        /// </summary>
+        public static readonly Position OutsideDuluthCanal = new Position("OutsideDuluthCanal", 46.77897, -92.05072);
+
+        /// <summary>
+        /// A ship roughly half-way between the Duluth canal and Superior.
+        /// </summary>
+        public static readonly Position HalfwayBetweenDuluthAndSuperior = new Position("HalfwayBetweenDuluthAndSuperior", 46.785017, -92.024231);
+
+        /// <summary>
+        /// A ship outside the Superior canal.
+        /// </summary>
+        public static readonly Position OutsideSuperiorCanal = new Position("OutsideSuperiorCanal", 46.747390, -91.974793);
+
+        //// public static Position AerialLiftBridge = new Position("AerialLiftBridge", 46.7790, -92.0928);
+
+        //// public static Position DuluthHarborBasin = new Position("DuluthHarborBasin", 46.771861, -92.100498);
+
+        //// public static Position DuluthSuperiorDeadZone = new Position("DuluthSuperiorDeadZone", 46.750576, -92.086250);
+
+        //// public static Position SuperiorBay = new Position("SuperiorBay", 46.709512, -92.035610);
+
+        //// public static Position StLouisBay = new Position("StLouisBay", 46.746459, -92.125560);
+
+        /// <summary>
+        /// Returns all ship positions in the class via reflection
+        /// </summary>
+        public static readonly Position[] All = typeof(ShipPositions).GetFieldValues<Position>();
+    }
+}

@@ -1,0 +1,25 @@
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
+namespace ShipTester.Extensions
+{
+    public static class EnumerableExtensions
+    {
+        public static void ToCsv<T>(this IEnumerable<T> objects, StreamWriter writer)
+        {
+            var type = typeof(T);
+
+            var properties = type.GetProperties();
+
+            writer.WriteLine(
+                properties.Select(p => p.Name).Join()
+            );
+
+            foreach (T obj in objects)
+                writer.WriteLine(
+                    properties.Select(p => p.GetValue(obj)).Join()
+                );
+        }
+    }
+}

@@ -1,0 +1,25 @@
+﻿using ShipTester.Extensions;
+
+namespace ShipTester.Model
+{
+    public static class ShipPositions
+    {
+        public static Position NotInLakeSuperior = new Position("NotInLakeSuperior", 0, 0);
+
+        public static Position WestLakeSuperior = new Position("WestLakeSuperior", 46.965166, -91.339919);
+
+        public static Position CentralLakeSuperior = new Position("CentralLakeSuperior", 47.557902, -88.033034);
+
+        public static Position EastLakeSuperior = new Position("EastLakeSuperior", 46.809366, -84.816787);
+
+        public static Position DuluthHarborBasin = new Position("DuluthHarborBasin", 46.771861, -92.100498);
+
+        public static Position SuperiorBay = new Position("SuperiorBay", 46.709512, -92.035610);
+
+        public static Position StLouisBay = new Position("StLouisBay", 46.746459, -92.125560);
+
+        public static Position DuluthSuperiorDeadZone = new Position("DuluthSuperiorDeadZone", 46.750576, -92.086250);
+
+        public static Position[] All = typeof(ShipPositions).GetFieldValues<Position>();
+    }
+}

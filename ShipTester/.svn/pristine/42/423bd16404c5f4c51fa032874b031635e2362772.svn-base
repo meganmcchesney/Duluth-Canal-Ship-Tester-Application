@@ -1,0 +1,10 @@
+﻿namespace ShipTester.Model
+{
+    public enum Port
+    {
+        Duluth,
+        Supperior,
+        ThunderBay,
+        SaultSteMarie
+    }
+}

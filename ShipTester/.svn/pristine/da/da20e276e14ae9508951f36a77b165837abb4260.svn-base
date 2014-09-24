@@ -1,0 +1,28 @@
+﻿using ShipTester.Model;
+using System.Collections.Generic;
+
+namespace ShipTester
+{
+    public static class ShipTestProcessor
+    {
+        public static void Execute(IEnumerable<ShipTest> shipTests)
+        {
+            foreach (var shipTest in shipTests)
+                Update(shipTest);
+        }
+
+        private static void Update(ShipTest shipTest)
+        {
+            if (!shipTest.IsInDuluthSuperiorPort() &&
+                //ship stated destination is Duluth and the heading is less than 90 degrees difference or
+                (shipTest.Destination.Equals(Ports.Duluth) && shipTest.IsHeadingToward(shipTest.Destination)) ||
+                //ship heading is less that 90 degrees from Duluth heading and more than 90 degrees from stated destination
+                (shipTest.IsHeadingToward(Ports.Duluth) && !shipTest.IsHeadingToward(shipTest.Destination)))
+                //then CanalETA populates as calculated
+                shipTest.DuluthCanalETAResult = DuluthCanalETAResult.Calculated;
+
+            // miles ship is from the lift Bridge.
+            shipTest.DirectDistanceToLiftBridge = Helper.GeoHelper.DistanceBetweenCoord(ShipPositions.AerialLiftBridge, shipTest.Position);
+        }
+    }
+}

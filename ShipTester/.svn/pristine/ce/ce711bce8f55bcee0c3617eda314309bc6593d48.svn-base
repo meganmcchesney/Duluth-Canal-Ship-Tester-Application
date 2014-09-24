@@ -1,0 +1,158 @@
+﻿namespace ShipTester.Helper
+{
+    using System;
+    using Extensions;
+    using Model;
+
+    /// <summary>
+    /// Methods needed for the mathematics of ship positioning
+    /// </summary>
+    public static class GeoHelper
+    {
+        /// <summary>
+        ///  measure of earth's radius in miles
+        /// </summary>
+        public const double EarthRadiusMiles = 3959;
+
+        /// <summary>
+        /// measure of earth's radius in kilometers
+        /// </summary>
+        public const double EarthRadiusKm = 6371;
+
+        /// <summary>
+        /// Returns bearing to port (definition bearing: degree measure a ship must follow to a defined position)
+        /// </summary>
+        /// <param name="ship">ship position</param>
+        /// <param name="port">port position</param>
+        /// <returns>radian measure of ship's bearing to port</returns>
+        public static double GetBearing(Position ship, Position port)
+        {
+            // Algorithm courtesy of Chris Veness
+            // http://www.movable-type.co.uk/scripts/latlong.html
+            var φ1 = ship.Latitude.ToRadians();
+            var φ2 = port.Latitude.ToRadians();
+            var δλ = (port.Longitude - ship.Longitude).ToRadians();
+
+            var y = Math.Sin(δλ) * Math.Cos(φ2);
+            var x = (Math.Cos(φ1) * Math.Sin(φ2)) -
+                    (Math.Sin(φ1) * Math.Cos(φ2) * Math.Cos(δλ));
+            var θ = Math.Atan2(y, x);
+
+            return (θ.ToDegrees() + 360) % 360;
+        }
+
+        /// <summary>
+        /// Method to determine if a given position is inside a defined geographical area
+        /// </summary>
+        /// <param name="ship">ship position</param>
+        /// <param name="area">polygon defined by geographic area</param>
+        /// <returns>true / false</returns>
+        public static bool IsPointInPolygon(Position ship, Polygon area)
+        {
+            bool oddNodes = false;
+            int j = area.PolySides - 1;
+
+            // Patrick Mullen implementation has errors
+            // for (int i = 0; i < area.PolySides; i++)
+            // {
+            //     if ((area.PolyY[i] < ship.Latitude && area.PolyY[j] >= ship.Latitude || area.PolyY[j] < ship.Latitude && area.PolyY[i] >= ship.Latitude))
+            //     {
+            //         oddNodes ^= (ship.Latitude * area.Multiple[i] + area.Constant[i] < ship.Longitude);
+            //     }
+            //     j = i;
+            // }
+            // return oddNodes;
+            for (int i = 0; i < area.PolySides; i++)
+            {
+                if ((area.PolyY[i] < ship.Latitude && area.PolyY[j] >= ship.Latitude)
+                || (area.PolyY[j] < ship.Latitude && area.PolyY[i] >= ship.Latitude))
+                {
+                    if (((area.PolyX[i] + (ship.Latitude - area.PolyY[i])) / ((area.PolyY[j] - area.PolyY[i]) * (area.PolyX[j] - area.PolyX[i]))) < ship.Longitude)
+                    {
+                        oddNodes = !oddNodes;
+                    }
+                }
+                j = i;
+            }
+            return oddNodes;
+        }
+
+        /// <summary>
+        /// Distances the between coordinates.
+        /// </summary>
+        /// <param name="destLatLong">The destination latitude / longitude</param>
+        /// <param name="currLatLong">The current latitude / longitude.</param>
+        /// <param name="isMiles">if set to <c>true</c> [miles] will be returned, else Kilometers between Coordinates.</param>
+        /// <returns>approximate distance between to points on a sphere (earth).</returns>
+        public static double DistanceBetweenCoord(Tuple<double, double> destLatLong, Tuple<double, double> currLatLong, bool isMiles)
+        {
+            double radius = EarthRadiusMiles;
+            if (!isMiles)
+                radius = EarthRadiusKm;
+            return DistanceBetweenCoord(destLatLong.Item1, destLatLong.Item2, currLatLong.Item1, currLatLong.Item2, radius);
+        }
+
+        /// <summary>
+        /// Distance between the coordinates.
+        /// </summary>
+        /// <param name="destLatLong">The destination latitude / longitude</param>
+        /// <param name="currLatLong">The current latitude / longitude</param>
+        /// <param name="radius">The radius of sphere (earth). 3959 Miles (default), 6371 KM </param>
+        /// <returns>returns approximate distance between to points on a sphere.</returns>
+        public static double DistanceBetweenCoord(Tuple<double, double> destLatLong, Tuple<double, double> currLatLong, double radius = EarthRadiusMiles)
+        {
+            return DistanceBetweenCoord(destLatLong.Item1, destLatLong.Item2, currLatLong.Item1, currLatLong.Item2, radius);
+        }
+
+        /// <summary>
+        /// Distance between the coordinates.
+        /// </summary>
+        /// <param name="destLatLong">The destination latitude / longitude</param>
+        /// <param name="currLatLong">The current latitude / longitude</param>
+        /// <param name="isMiles">Option boolean to determine if Earth's radius is in miles</param>
+        /// <returns>approximate distance between to points on a sphere (earth).</returns>
+        public static double DistanceBetweenCoord(Position destLatLong, Position currLatLong, bool isMiles)
+        {
+            double radius = EarthRadiusMiles;
+            if (!isMiles)
+                radius = EarthRadiusKm; 
+            return DistanceBetweenCoord(destLatLong.Latitude, destLatLong.Longitude, currLatLong.Latitude, currLatLong.Longitude, radius);
+        }
+
+        /// <summary>
+        /// Distance between the coordinates.
+        /// </summary>
+        /// <param name="destLatLong">The destination latitude / longitude.</param>
+        /// <param name="currLatLong">The current latitude / longitude</param>
+        /// <param name="radius">The radius of sphere (earth). 3959 Miles (default), 6371 KM </param>
+        /// <returns>returns approximate distance between to points on a sphere.</returns>
+        public static double DistanceBetweenCoord(Position destLatLong, Position currLatLong, double radius = EarthRadiusMiles)
+        {
+            return DistanceBetweenCoord(destLatLong.Latitude, destLatLong.Longitude, currLatLong.Latitude, currLatLong.Longitude, radius);
+        }
+
+        /// <summary>
+        /// Distance between the coordinates.
+        /// </summary>
+        /// <param name="destLat">The destination latitude</param>
+        /// <param name="destLong">The destination longitude</param>
+        /// <param name="currLat">The current latitude.</param>
+        /// <param name="currLong">The current longitude.</param>
+        /// <param name="radius">The radius of sphere (earth). 3959 Miles (default), 6371 KM  </param>
+        /// <returns>returns approximate distance between to points on a sphere.</returns>
+        public static double DistanceBetweenCoord(double destLat, double destLong, double currLat, double currLong, double radius = EarthRadiusMiles)
+        {
+            var φ1 = destLat.ToRadians();
+            var φ2 = currLat.ToRadians();
+            var δφ = (currLat - destLat).ToRadians();
+            var δλ = (currLong - destLong).ToRadians();
+
+            var a = (Math.Sin(δφ / 2) * Math.Sin(δφ / 2)) +
+                    (Math.Cos(φ1) * Math.Cos(φ2) *
+                    Math.Sin(δλ / 2) * Math.Sin(δλ / 2));
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+            return radius * c;
+        }
+    }
+}

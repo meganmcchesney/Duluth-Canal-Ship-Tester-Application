@@ -1,0 +1,27 @@
+﻿namespace ShipTester.Extensions
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+
+    /// <summary>
+    /// This class extends the functionality of object
+    /// </summary>
+    public static class ObjectExtensions
+    {
+        /// <summary>
+        /// Generates comma separated string of the values of an object's properties
+        /// </summary>
+        /// <param name="obj">An object from which to get property values</param>
+        /// <typeparam name="T">The type of the object from which to get property values</typeparam>
+        /// <returns>A comma separated string of the object's property values</returns>
+        public static string PropertyValuesToCsv<T>(this T obj)
+        {
+            var type = typeof(T);
+            var properties = type.GetProperties();
+            return properties.Select(p => p.GetValue(obj)).Join();
+        }
+    }
+}

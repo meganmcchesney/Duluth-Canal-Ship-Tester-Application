@@ -1,0 +1,247 @@
+Index: ShipTester/Model/ShipPositions.cs
+===================================================================
+--- ShipTester/Model/ShipPositions.cs	(revision 21127)
++++ ShipTester/Model/ShipPositions.cs	(working copy)
+@@ -11,10 +11,11 @@
+         public static Position TwentyMilesFromDuluthCanal = new Position("TwentyMilesFromDuluthCanal", 46.8797, -91.7072);
+ 
+         public static Position OutsideDuluthCanal = new Position("OutsideDuluthCanal", 46.77897, -92.05072);
++
+         public static Position CentralLakeSuperior = new Position("CentralLakeSuperior", 47.47, -88.0964);
++
+         public static Position AerialLiftBridge = new Position("AerialLiftBridge", 46.7790, -92.0928);
+ 
+-
+         //public static Position CentralLakeSuperior = new Position("CentralLakeSuperior", 47.557902, -88.033034);
+ 
+         public static Position EastLakeSuperior = new Position("EastLakeSuperior", 46.809366, -84.816787);
+Index: ShipTester/ShipTestEvaluator.cs
+===================================================================
+--- ShipTester/ShipTestEvaluator.cs	(revision 21127)
++++ ShipTester/ShipTestEvaluator.cs	(working copy)
+@@ -19,15 +19,29 @@
+ 
+             if (shipTest.DuluthCanalETAResult == DuluthCanalETAResult.Calculated)
+             {
+-                shipTest.Pass = (shipTest.ToPort.Equals(Ports.Duluth) && shipTest.IsHeadingToward(Ports.Duluth)) || (shipTest.IsInStLouisBay() ||
++                shipTest.Pass = (shipTest.IsInStLouisBay() ||
+                     (shipTest.IsInDuluthSuperiorPort() && !shipTest.IsInStLouisBay() && shipTest.IsHeadingToward(Ports.Duluth)) ||
+-                    (distanceToCanal > 50 && shipTest.Destination.Equals(Ports.Duluth)));
++                    (distanceToCanal > 50 && shipTest.Destination.Equals(Ports.Duluth)) ||
++                    //the heading threshold is too large right now. Needs adjustment
++                    (distanceToCanal < 50 && shipTest.IsHeadingToward(Ports.Duluth)));
+             }
+             else
+             {
+-                shipTest.Pass = !shipTest.ToPort.Equals(Ports.Duluth) || !shipTest.IsHeadingToward(Ports.Duluth) ||
++                shipTest.Pass = (!shipTest.ToPort.Equals(Ports.Duluth) && !shipTest.IsHeadingToward(Ports.Duluth)) ||
+                     (shipTest.IsInDuluthSuperiorPort() && !shipTest.IsInStLouisBay() && shipTest.IsHeadingToward(Ports.Superior)) ||
+-                    (distanceToCanal > 50 && !shipTest.Destination.Equals(Ports.Duluth));
++                    (distanceToCanal > 50 && !shipTest.Destination.Equals(Ports.Duluth) ||
++                    //this is a passing case because it is an unrealistic permutation
++                    //example: a ship in the Duluth Harbor Basin where ToPort = Thunder Bay and FromPort = ThuderBay
++                    (shipTest.ToPort.ToString() == shipTest.FromPort.ToString()) ||
++                    //another weed out case:
++                    //Duluth / Superior, ToPort / FromPort combos where ship Position !IsInDuluthSuperiorPort && distanceToCanal < 50 miles
++                    ((shipTest.ToPort.Equals(Ports.Duluth)
++                    || shipTest.ToPort.Equals(Ports.Superior)
++                    || shipTest.FromPort.Equals(Ports.Duluth)
++                    || shipTest.FromPort.Equals(Ports.Superior))
++                    &&
++                    (!shipTest.IsInDuluthSuperiorPort()
++                    && distanceToCanal < 50)));
+             }
+ 
+             shipTest.Tally = Convert.ToInt32(shipTest.Pass);
+Index: ShipTester/ShipTestExtensions.cs
+===================================================================
+--- ShipTester/ShipTestExtensions.cs	(revision 21127)
++++ ShipTester/ShipTestExtensions.cs	(working copy)
+@@ -1,4 +1,5 @@
+ ﻿using System;
++using System.Collections.Generic;
+ using System.Linq;
+ using ShipTester.Helper;
+ using ShipTester.Model;
+@@ -45,5 +46,7 @@
+             if (shipPos == "StLouisBay") return true;
+             return false;
+         }
++
+     }
++
+ }
+Index: ShipTester/ShipTestProcessor.cs
+===================================================================
+--- ShipTester/ShipTestProcessor.cs	(revision 21127)
++++ ShipTester/ShipTestProcessor.cs	(working copy)
+@@ -16,10 +16,9 @@
+ 
+         private static void Update(ShipTest shipTest)
+         {
+-
+             //timestamp for when a ship first reports a position inside the harbor
+             shipTest.CanalEntryTimestamp = MarkShipEvent(shipTest);
+-            
++
+             //distance (in miles) that a ship is from the lift bridge
+             //is the distance returned really in miles? Verify this.
+             var distanceToCanal = GeoHelper.DistanceBetweenCoord(ShipPositions.AerialLiftBridge, shipTest.Position);
+@@ -27,10 +26,9 @@
+             //only tracking ships that report as underway
+             if (shipTest.NavigationalStatus == NavigationalStatus.Underway)
+             {
+-                Position[] TwoNearestPorts = TwoNearestPortsByBearing(shipTest, new Position[] { Ports.Duluth, Ports.Superior, Ports.TwoHarbors, Ports.SilverBay });
+                 //for ships inside the Duluth Harbor
+                 if (shipTest.Position.Longitude < -92.00000 && shipTest.CanalEntryTimestamp != null)
+-                {  
++                {
+                     //if ship is in St. Louis Bay, we treat it differently than if it is anywhere else in the harbor
+                     if (IsBoatInStLouisBayZone(shipTest))
+                     {
+@@ -38,56 +36,59 @@
+                     }
+                     else
+                     {
++                        //I want this list assessible in a different way
+                         var DuluthSuperiorPorts = new[] { Ports.Duluth, Ports.Superior };
++
+                         var port = NearestPortByBearing(shipTest, DuluthSuperiorPorts);
+                         if (port.Equals(Ports.Duluth))
+                         {
++                            //seems like we shouldn't pass port. Only DeriveEta when port=Duluth
+                             DeriveEta(shipTest, port);
+                         }
+                     }
+                 }
+-                    //for ships outside the Duluth harbor
++                //for ships outside the Duluth harbor
+                 else
+                 {
++                    //ship inside receiver range
++                    if (distanceToCanal < 50)
++                    {
++                        Position[] TwoNearestPorts = TwoNearestPortsByBearing(shipTest,
++                            new Position[] {Ports.Duluth, Ports.Superior, Ports.TwoHarbors, Ports.SilverBay});
+ 
+-                    //max receiver range or when shipping lanes start to form, this is up for debate
+-                    if (distanceToCanal <= 150 && (TwoNearestPorts[0].Equals(Ports.Duluth) || TwoNearestPorts[1].Equals(Ports.Duluth)))
+-                    {
+-                        //determine if a ship's reported destination is possibly valid.
+-                        if (shipTest.Destination.Equals(Ports.Duluth) && ConfirmHeading(shipTest, TwoNearestPorts))
++                        if (TwoNearestPorts[0].Equals(Ports.Duluth))
+                         {
+                             DeriveEta(shipTest, Ports.Duluth);
+                         }
+-                        else if (shipTest.Destination.Equals(Ports.Superior) && TwoNearestPorts[0].Equals(Ports.Duluth))
++                        else if (TwoNearestPorts[1].Equals(Ports.Duluth))
+                         {
+-                            DeriveEta(shipTest, Ports.Duluth);
++                            if (shipTest.Destination.Equals(Ports.Duluth) && ConfirmHeading(shipTest, TwoNearestPorts))
++                            {
++                                DeriveEta(shipTest, Ports.Duluth);
++                            }
+                         }
+-                        else if(TwoNearestPorts[0].Equals(Ports.Duluth))
+-                        {
+-                            DeriveEta(shipTest, Ports.Duluth);
+-                        }
+                     }
+                     //ship is outside receiver range
+                     else
+                     {
+-                        shipTest.DerivedEta = shipTest.Eta;
++                        shipTest.DerivedEta = DateTime.Now; //this will change to shipTest.Eta;
+                     }
+                 }
+             }
+ 
+             if //ship is not insides harbor, stated destination is Duluth and the heading is less than 90 degrees difference or
+-               (!shipTest.IsInDuluthSuperiorPort() && shipTest.Destination.Equals(Ports.Duluth)  && shipTest.IsHeadingToward(shipTest.Destination) ||
++               (!shipTest.IsInDuluthSuperiorPort() && shipTest.Destination.Equals(Ports.Duluth) && shipTest.IsHeadingToward(shipTest.Destination) ||
+                 //ship heading is less that 90 degrees from Duluth heading and more than 90 degrees from stated destination
+                 (shipTest.IsHeadingToward(Ports.Duluth) && !shipTest.IsHeadingToward(shipTest.Destination)) ||
+                 //current ship position is in SLuBay
+-                (shipTest.IsInStLouisBay())  ||
++                (shipTest.IsInStLouisBay()) ||
+                 //ship is in the harbor, not in SLuBay, and heading towards Duluth canal
+                 (shipTest.IsInDuluthSuperiorPort() && !shipTest.IsInStLouisBay() && shipTest.IsHeadingToward(Ports.Duluth)) ||
+                 //outside receiver zone
+                 (distanceToCanal > 50 && shipTest.Destination.Equals(Ports.Duluth)))
+-                {
+-                    shipTest.DuluthCanalETAResult = DuluthCanalETAResult.Calculated;
+-                }
++            {
++                shipTest.DuluthCanalETAResult = DuluthCanalETAResult.Calculated;
++            }
+ 
+         }
+ 
+@@ -109,7 +110,7 @@
+             {
+                 return true;
+             }
+-            else return false;
++            return false;
+         }
+ 
+         //returns the timestamp of when a ship first reports a position Inside Harbor. Timestamp is only set if there is
+@@ -137,15 +138,6 @@
+         //returns DerivedEta of a ship in St. Louis Bay
+         private static void DeriveEtaFromStLouisBay(ShipTest shipTest)
+         {
+-            //to calculate DerivedEta from SLuBay, 
+-            //first, ensure ship is heading out of SLuBay
+-            //bool DoesShipHaveHeadingToExit = true;
+-            //if (180 < shipTest.Heading < 290)
+-            //{
+-            //    bool DoesShipHaveHeadingToExit = false;
+-            //}
+-            //if (DoesShipHaveHeadingToExit)
+-            //{
+             //first, calculate the direct distance to the canal and use it as the hypotenuse of a 30/60/90 triangle
+             var directLineDistance =
+                 Helper.GeoHelper.DistanceBetweenCoord(ShipPositions.AerialLiftBridge, shipTest.Position);
+@@ -183,10 +175,11 @@
+         {
+             Position NearestPort = null;
+             double leastDifferential = 361;
+-            foreach(Position port in ports)
++            foreach (Position port in ports)
+             {
+                 double currentDifferential = CalculateDifferential(GeoHelper.GetHeading(shipTest.Position, port), shipTest.Heading);
+-                if( currentDifferential <= leastDifferential){
++                if (currentDifferential <= leastDifferential)
++                {
+                     leastDifferential = currentDifferential;
+                     NearestPort = port;
+                 }
+@@ -218,7 +211,7 @@
+                         secondLeastDifferential = currentDifferential;
+                         SecondNearestPort = port;
+                     }
+-                    
++
+                 }
+             }
+ 
+@@ -229,7 +222,7 @@
+         private static double CalculateDifferential(double bearing, double heading)
+         {
+             double differential = bearing - heading;
+-            if( differential > 180 )
++            if (differential > 180)
+             {
+                 differential -= 360;
+             }
+@@ -236,8 +229,8 @@
+             else if (differential <= -180)
+             {
+                 differential += 360;
+-            } 
+-        
++            }
++
+             return Math.Abs(differential);
+         }
+     }

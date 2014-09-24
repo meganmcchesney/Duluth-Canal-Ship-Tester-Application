@@ -1,0 +1,23 @@
+﻿using System;
+using ShipTester.Helper;
+using ShipTester.Model;
+
+namespace ShipTester
+{
+    public static class ShipTestExtensions
+    {
+        private const double HeadingTowardThreshold = 90;
+
+        public static bool IsInDuluthSuperiorPort(this ShipTest shipTest)
+        {
+            return false;
+        }
+
+        public static bool IsHeadingToward(this ShipTest shipTest, Position position)
+        {
+            var heading = GeoHelper.GetHeading(shipTest.Position, position);
+            var difference = Math.Abs(shipTest.Heading - heading);
+            return difference <= HeadingTowardThreshold;
+        }
+    }
+}

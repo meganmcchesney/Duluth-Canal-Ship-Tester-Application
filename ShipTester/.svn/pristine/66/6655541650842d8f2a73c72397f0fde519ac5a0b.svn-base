@@ -1,0 +1,22 @@
+﻿using ShipTester.Model;
+using System.Collections.Generic;
+
+namespace ShipTester
+{
+    public static class ShipTestProcessor
+    {
+        public static void Execute(IEnumerable<ShipTest> shipTests)
+        {
+            foreach (var shipTest in shipTests)
+                Update(shipTest);
+        }
+
+        private static void Update(ShipTest shipTest)
+        {
+            if (!shipTest.IsInDuluthSuperiorPort() &&
+                (shipTest.Destination.Equals(Ports.Duluth) && shipTest.IsHeadingToward(shipTest.Destination)) ||
+                (shipTest.IsHeadingToward(Ports.Duluth) && !shipTest.IsHeadingToward(shipTest.Destination)))
+                shipTest.DuluthCanalETAResult = DuluthCanalETAResult.Calculated;
+        }
+    }
+}

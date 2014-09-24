@@ -1,0 +1,30 @@
+﻿namespace ShipTester.Extensions
+{
+    using System;
+
+    /// <summary>
+    /// conversion methods for doing math
+    /// </summary>
+    public static class DoubleExtensions
+    {
+        /// <summary>
+        /// converts degrees to radians
+        /// </summary>
+        /// <param name="value">degree value</param>
+        /// <returns>radian value</returns>
+        public static double ToRadians(this double value)
+        {
+            return value * Math.PI / 180;
+        }
+
+        /// <summary>
+        /// converts radians to degrees
+        /// </summary>
+        /// <param name="value">radian value</param>
+        /// <returns>degree value</returns>
+        public static double ToDegrees(this double value)
+        {
+            return value * 180 / Math.PI;
+        }
+    }
+}

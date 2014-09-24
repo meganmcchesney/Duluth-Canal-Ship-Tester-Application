@@ -1,0 +1,12 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace ShipTester.Permutation
+{
+    public interface IPermutator<T>
+    {
+        Func<IEnumerable<T>> Create { get; set; }
+
+        IEnumerable<T> GetPermutations();
+    }
+}

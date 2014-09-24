@@ -1,0 +1,38 @@
+﻿namespace ShipTester.Extensions
+{
+using System;
+using System.Linq;
+
+    /// <summary>
+    /// Enumerates defined types within project
+    /// </summary>
+    public static class TypeExtensions
+    {
+        /// <summary>
+        /// Uses reflection to enumerate Areas, Ports, ShipPositions, etc.
+        /// </summary>
+        /// <typeparam name="T">The type array of the objects</typeparam>
+        /// <param name="type">the type of the object</param>
+        /// <returns> An array of objects sharing the same type</returns>
+        public static T[] GetFieldValues<T>(this Type type)
+        {
+            return type
+                .GetFields()
+                .Select(p => p.GetValue(null))
+                .Where(p => p != null)
+                .Cast<T>()
+                .ToArray();
+        }
+
+        /// <summary>
+        /// Generates comma separated string of the names of an object's properties
+        /// </summary>
+        /// <param name="type">The type from which to get property names</param>
+        /// <returns>A comma separated string of the type's property values</returns>
+        public static string PropertyNamesToCsv(this Type type)
+        {
+            var properties = type.GetProperties();
+            return properties.Select(p => p.Name).Join();
+        }
+    }
+}

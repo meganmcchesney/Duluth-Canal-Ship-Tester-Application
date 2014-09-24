@@ -1,0 +1,32 @@
+﻿// <copyright file="EnumerablePermutator.cs" company="Saturn Systems">
+// ShipTester, ShipTester
+// by
+// Saturn Systems, 22/08/2014
+// Megan McChesney
+// </copyright>
+using System.Collections.Generic;
+
+namespace ShipTester.Permutation
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TValue"></typeparam>
+    /// <typeparam name="TResult"></typeparam>
+    public class EnumerablePermutator<TValue, TResult> : Permutator<TValue, TResult>
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        public IEnumerable<TValue> Values { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override IEnumerable<TValue> GetValues()
+        {
+            return Values;
+        }
+    }
+}

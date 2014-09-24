@@ -1,0 +1,177 @@
+﻿using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using ShipTester.Extensions;
+using ShipTester.Helper;
+using ShipTester.Model;
+using System.Collections.Generic;
+
+namespace ShipTester
+{
+    public static class ShipTestProcessor
+    {
+        private static double SixtyDegreesAsRadians = 60d.ToRadians();
+        private static double SinSixtyDegrees = Math.Sin(SixtyDegreesAsRadians);
+        private static double CosSixtyDegrees = Math.Cos(SixtyDegreesAsRadians);
+        private const double DataLagInHours = .067; // 4 minutes
+
+        public static void Execute(IEnumerable<ShipTest> shipTests)
+        {
+            foreach (var shipTest in shipTests)
+                Update(shipTest);
+        }
+
+        private static void Update(ShipTest shipTest)
+        {
+            var inHarbor = shipTest.IsInDuluthSuperiorHarbor();
+            if (inHarbor && !shipTest.CanalEntryTimestamp.HasValue)
+            {
+                shipTest.CanalEntryTimestamp = DateTime.Now;
+            }
+            else if (!inHarbor)
+            {
+                shipTest.CanalEntryTimestamp = null;
+            }
+
+            if (shipTest.IsUnderway())
+            {
+                if(shipTest.IsWithinFiftyMilesOfDuluth())
+                {
+                    if (shipTest.IsInDuluthSuperiorHarborForMoreThanHour())
+                    {
+                        if (shipTest.IsInStLouisBay())
+                        {
+                            ProcessStLouisBayEtaToDuluth(shipTest);
+                        }
+                        else if (shipTest.IsMovingTowardDuluth())
+                        {
+                            DeriveEta(shipTest);
+                        }
+                    }
+                    else if (shipTest.IsHeadingTowardDuluth())
+                    {
+                        DeriveEta(shipTest);
+                    }
+                }
+                else if (shipTest.IsDestinationDuluth() && shipTest.IsMovingTowardDuluth())
+                {
+                    shipTest.DerivedEta = shipTest.Eta;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Assesses the validity of a ships reported destination. The ships heading must be within the destinationBearing + or - 2/3 the change in heading between the two nearest ports.
+        /// </summary>
+        /// <param name="shipTest"></param>
+        /// <param name="ports">Should only pass in the twoNearestPortsByBearing</param>
+        /// <returns>True if we believe the ships destination</returns>
+        private static bool ConfirmHeading(ShipTest shipTest, Position[] ports)
+        {
+            var destinationBearing = GeoHelper.GetHeading(shipTest.Position, shipTest.Destination);
+            var portBearing0 = GeoHelper.GetHeading(shipTest.Position, ports[0]);
+            var portBearing1 = GeoHelper.GetHeading(shipTest.Position, ports[1]);
+            var portDiff = Math.Abs(portBearing0 - portBearing1);
+            var bearingVariance = 2 * portDiff / 3;
+
+            if (destinationBearing >= shipTest.Heading - portDiff && destinationBearing <= shipTest.Heading + portDiff)
+            {
+                return true;
+            }
+            else return false;
+        }
+
+
+        //returns DerivedEta of a ship in St. Louis Bay
+        private static void ProcessStLouisBayEtaToDuluth(ShipTest shipTest)
+        {
+            //first, calculate the direct distance to the canal and use it as the hypotenuse of a 30/60/90 triangle
+            var directLineDistance = GeoHelper.DistanceBetweenCoord(Ports.Duluth, shipTest.Position);
+            //next, find lengths of the opposite and adjacent sides (convert angle to radians)
+            var shipSideDistance = directLineDistance * SinSixtyDegrees;
+            var canalSideDistance = directLineDistance * CosSixtyDegrees;
+            //last, d=rt provides time to travel in hours
+            var totalDistance = (shipSideDistance + canalSideDistance);
+
+            shipTest.DerivedEta = GetLagAdjustedDerivedEta(totalDistance, shipTest.Speed);
+        }
+
+        private static void DeriveEta(ShipTest shipTest)
+        {
+            var directLineDistance = GeoHelper.DistanceBetweenCoord(Ports.Duluth, shipTest.Position);
+            
+            shipTest.DerivedEta = GetLagAdjustedDerivedEta(directLineDistance, shipTest.Speed);
+        }
+
+        private static DateTime? GetLagAdjustedDerivedEta(Double distance, Double speed)
+        {
+            //use time (in hours) added to current time and account for data lag 
+            double total = distance / speed + DataLagInHours;  //need a constant here shipTest.Datalag??
+            DateTime dateTime = DateTime.Now;
+
+            return dateTime.AddHours(total);
+        }
+
+        private static Position NearestPortByBearing(ShipTest shipTest, Position[] ports)
+        {
+            Position NearestPort = null;
+            double leastDifferential = 361;
+            foreach(Position port in ports)
+            {
+                double currentDifferential = CalculateDifferential(GeoHelper.GetHeading(shipTest.Position, port), shipTest.Heading);
+                if( currentDifferential <= leastDifferential){
+                    leastDifferential = currentDifferential;
+                    NearestPort = port;
+                }
+            }
+            return NearestPort;
+        }
+
+        private static Position[] TwoNearestPortsByBearing(ShipTest shipTest, Position[] ports)
+        {
+            Position NearestPort = null;
+            Position SecondNearestPort = null;
+            double leastDifferential = 361;
+            double secondLeastDifferential = 361;
+
+            foreach (Position port in ports)
+            {
+                double currentDifferential = CalculateDifferential(GeoHelper.GetHeading(shipTest.Position, port), shipTest.Heading);
+                if (currentDifferential <= secondLeastDifferential)
+                {
+                    if (currentDifferential <= leastDifferential)
+                    {
+                        secondLeastDifferential = leastDifferential;
+                        SecondNearestPort = NearestPort;
+                        leastDifferential = currentDifferential;
+                        NearestPort = port;
+                    }
+                    else
+                    {
+                        secondLeastDifferential = currentDifferential;
+                        SecondNearestPort = port;
+                    }
+                    
+                }
+            }
+
+            return new Position[] { NearestPort, SecondNearestPort };
+        }
+
+        //given two angles, returns the smaller angle between them
+        private static double CalculateDifferential(double bearing, double heading)
+        {
+            double differential = bearing - heading;
+            if( differential > 180 )
+            {
+                differential -= 360;
+            }
+            else if (differential <= -180)
+            {
+                differential += 360;
+            } 
+        
+            return Math.Abs(differential);
+        }
+    }
+}

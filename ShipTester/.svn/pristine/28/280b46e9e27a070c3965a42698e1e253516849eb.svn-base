@@ -1,0 +1,15 @@
+﻿namespace ShipTester.Model
+{
+    /// <summary>
+    /// AIS data field "Navigation Status"
+    /// </summary>
+    public enum NavigationalStatus
+    {
+        // Other,
+
+        /// <summary>
+        /// Test Navigational Status, shortened form of "underway using engine" / "underway by sail"
+        /// </summary>
+        Underway
+    }
+}

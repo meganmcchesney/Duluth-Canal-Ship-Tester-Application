@@ -1,0 +1,97 @@
+﻿namespace ShipTester.Tests.ShipTesting
+{
+    using System;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using ShipTester.Model;
+    using ShipTester.ShipTesting;
+
+    /// <summary>
+    /// The responsibility of this class is to test the functionality of the ShipTestProcessor
+    /// </summary>
+    [TestClass]
+    public class ShipTestProcessorTests
+    {
+        /// <summary>
+        /// Ships that are not underway should not have a derived eta
+        /// </summary>
+        [TestMethod]
+        public void ShipsNotUnderway()
+        {
+            ShipTest ship = new ShipTest()
+            {
+                Position = ShipPositions.FiftyMilesFromDuluthCanal,
+                NavigationalStatus = Model.NavigationalStatus.Other
+            };
+
+            ship.Update();
+
+            Assert.IsNull(ship.DerivedEta);
+        }
+
+        /// <summary>
+        /// Ships that are more than 50 miles out of Duluth, and appear to be moving toward duluth should rely on the ship's eta
+        /// </summary>
+        [TestMethod]
+        public void ShipsFarOutAndMovingToDuluth()
+        {
+            DateTime testTime = DateTime.Now;
+
+            ShipTest ship = new ShipTest()
+            {
+                Position = ShipPositions.EastLakeSuperior,
+                NavigationalStatus = Model.NavigationalStatus.Underway,
+                Destination = Ports.Duluth,
+                Heading = 200,
+                Eta = testTime
+            };
+
+            ship.Update();
+
+            Assert.AreEqual(testTime, ship.DerivedEta);
+        }
+
+        /// <summary>
+        /// Ships that are more than 50 miles out of Duluth which are declaring a destination other than Duluth should not receive a derived eta
+        /// </summary>
+        [TestMethod]
+        public void ShipsFarOutMovingToDuluthButDeclaringOtherwise()
+        {
+            DateTime testTime = DateTime.Now;
+
+            ShipTest ship = new ShipTest()
+            {
+                Position = ShipPositions.EastLakeSuperior,
+                NavigationalStatus = Model.NavigationalStatus.Underway,
+                Destination = Ports.Superior,
+                Heading = 200,
+                Eta = testTime
+            };
+
+            ship.Update();
+
+            Assert.IsNull(ship.DerivedEta);
+        }
+
+        /// <summary>
+        /// Ships that are more than 50 miles out of Duluth and do not appear to be heading to Duluth should not receive a derived eta
+        /// </summary>
+        [TestMethod]
+        public void ShipsFarOutDeclaringDuluthButMovingOtherwise()
+        {
+            DateTime testTime = DateTime.Now;
+
+            ShipTest ship = new ShipTest()
+            {
+                Position = ShipPositions.EastLakeSuperior,
+                NavigationalStatus = Model.NavigationalStatus.Underway,
+                Destination = Ports.Duluth,
+                Heading = 45,
+                Eta = testTime
+            };
+
+            ship.Update();
+
+            Assert.IsNull(ship.DerivedEta);
+        }
+    }
+}

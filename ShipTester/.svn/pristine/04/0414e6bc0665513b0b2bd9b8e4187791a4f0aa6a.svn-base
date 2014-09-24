@@ -1,0 +1,130 @@
+﻿namespace ShipTester.ShipTesting
+{
+    using System;
+    using System.Collections.Generic;
+    using Extensions;
+    using Helper;
+    using Model;
+
+    /// <summary>
+    /// Contains logic for sorting through ship test permutations
+    /// Goal is to derive an Eta to Duluth Canal for every ship predicted to use the canal
+    /// </summary>
+    public static class ShipTestProcessor
+    {
+        /// <summary>
+        /// calculation to convert 60 degrees to radians
+        /// </summary>
+        private static readonly double SixtyDegreesAsRadians = 60d.ToRadians();
+
+        /// <summary>
+        /// calculation for Sin of 60 degrees
+        /// </summary>
+        private static readonly double SinSixtyDegrees = Math.Sin(SixtyDegreesAsRadians);
+
+        /// <summary>
+        /// calculation for Cos of 60 degrees
+        /// </summary>
+        private static readonly double CosSixtyDegrees = Math.Cos(SixtyDegreesAsRadians);
+
+        /// <summary>
+        /// calculation to convert the time of datalag to a Timestamp
+        /// current data lag = 4 minutes
+        /// </summary>
+        private static readonly TimeSpan DataLag = TimeSpan.FromMinutes(4);
+
+        /// <summary>
+        /// Executes ship test processing logic for every ship test permutation
+        /// </summary>
+        /// <param name="shipTests">list of ship test permutations</param>
+        public static void Execute(IEnumerable<ShipTest> shipTests)
+        {
+            foreach (var shipTest in shipTests)
+                Update(shipTest);
+        }
+
+        /// <summary>
+        /// Method to populate a derived Eta for ships we deem will use Duluth Canal
+        /// </summary>
+        /// <param name="shipTest">ship test permutation</param>
+        private static void Update(ShipTest shipTest)
+        {
+            var inHarbor = shipTest.IsInDuluthSuperiorHarbor();
+            if (inHarbor && !shipTest.CanalEntryTimestamp.HasValue)
+            {
+                shipTest.CanalEntryTimestamp = DateTime.UtcNow.AddHours(-1.6);
+            }
+            else if (!inHarbor)
+            {
+                shipTest.CanalEntryTimestamp = null;
+            }
+
+            if (shipTest.IsUnderway())
+            {
+                if (shipTest.IsWithinFiftyMilesOfDuluth())
+                {
+                    if (shipTest.IsInDuluthSuperiorHarborForMoreThanHour())
+                    {
+                        if (shipTest.IsInStLouisBay())
+                        {
+                            ProcessStLouisBayEtaToDuluth(shipTest);
+                        }
+                        else if (shipTest.IsMovingTowardDuluth())
+                        {
+                            ProcessEtaToDuluth(shipTest);
+                        }
+                    }
+                    else if (!inHarbor && shipTest.IsHeadingTowardDuluth())
+                    {
+                        ProcessEtaToDuluth(shipTest);
+                    }
+                }
+                else if (shipTest.IsDestinationDuluth() && shipTest.IsMovingTowardDuluth())
+                {
+                    shipTest.DerivedEta = shipTest.Eta;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Ships in St. Louis Bay have derived Eta populated in a specific manner, based on triangulation from St. Louis Bay
+        /// The method uses a 60/60/60 triangle between ship position and Duluth Canal position
+        /// </summary>
+        /// <param name="shipTest">a ship test object that is located in St. Louis Bay</param>
+        private static void ProcessStLouisBayEtaToDuluth(ShipTest shipTest)
+        {
+            //// first, calculate the direct distance to the canal and use it as the hypotenuse of a 30/60/90 triangle
+            var directLineDistance = GeoHelper.DistanceBetweenCoord(Ports.Duluth, shipTest.Position);
+            //// next, find lengths of the opposite and adjacent sides (convert angle to radians)
+            var shipSideDistance = directLineDistance * SinSixtyDegrees;
+            var canalSideDistance = directLineDistance * CosSixtyDegrees;
+            //// last, d=rt provides time to travel in hours
+            var totalDistance = shipSideDistance + canalSideDistance;
+
+            shipTest.DerivedEta = GetLagAdjustedDerivedEta(totalDistance, shipTest.Speed);
+        }
+
+        /// <summary>
+        /// To populate a derived Eta, we must first determine the distance to the Duluth Canal from a given ship position
+        /// </summary>
+        /// <param name="shipTest">a ship test object that has a distance to canal</param>
+        private static void ProcessEtaToDuluth(ShipTest shipTest)
+        {
+            var directLineDistance = GeoHelper.DistanceBetweenCoord(Ports.Duluth, shipTest.Position);
+            
+            shipTest.DerivedEta = GetLagAdjustedDerivedEta(directLineDistance, shipTest.Speed);
+        }
+
+        /// <summary>
+        /// Once a ship's distance to the canal is known, calculate when the ship will reach the canal
+        /// and adjust for data lag within the system
+        /// </summary>
+        /// <param name="distance">a ship test object that has a distance to canal</param>
+        /// <param name="speed">a ship test reported speed</param>
+        /// <returns>Derived Eta time</returns>
+        private static DateTime GetLagAdjustedDerivedEta(double distance, double speed)
+        {
+            return DateTime.UtcNow.AddHours(distance / speed) + DataLag;
+        }
+    }
+}

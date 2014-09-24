@@ -1,0 +1,49 @@
+﻿using System;
+using ShipTester.Extensions;
+using ShipTester.Model;
+
+namespace ShipTester.Helper
+{
+    public static class GeoHelper
+    {
+        public static double GetHeading(Position ship, Position port)
+        {
+            // Algorithm courtesy of Chris Veness
+            // http://www.movable-type.co.uk/scripts/latlong.html
+            var φ1 = ship.Latitude.ToRadians();
+            var φ2 = port.Latitude.ToRadians();
+            var Δλ = (port.Longitude - ship.Longitude).ToRadians();
+
+            var y = Math.Sin(Δλ) * Math.Cos(φ2);
+            var x = Math.Cos(φ1) * Math.Sin(φ2) -
+                    Math.Sin(φ1) * Math.Cos(φ2) * Math.Cos(Δλ);
+            var θ = Math.Atan2(y, x);
+
+            return (θ.ToDegrees() + 360) % 360;
+        }
+        
+
+        /// <summary>
+        /// Assesses whether a ship is in a given area.
+        /// Todo: Create a model that defines polygons, test ships against these areas to see if implementation works.
+        /// </summary>
+        /// <param name="ship">The...finish comments</param>
+        /// <param name="area"></param>
+        /// <returns></returns>
+        public static bool IsPointInPolygon(Position ship, Polygon area)
+        {
+            bool oddNodes = false;
+            int j = area.PolySides - 1;
+
+            for (int i = 0; i < area.PolySides; i++)
+            {
+                if ((area.PolyY[i] < ship.Latitude && area.PolyY[j] >= ship.Latitude || area.PolyY[j] < ship.Latitude && area.PolyY[i] >= ship.Latitude))
+                {
+                    oddNodes ^= (ship.Latitude * area.Multiple[i] + area.Constant[i] < ship.Longitude);
+                }
+                j = i;
+            }
+            return oddNodes;
+        }
+    }
+}

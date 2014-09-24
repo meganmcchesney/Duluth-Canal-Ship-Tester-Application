@@ -1,0 +1,16 @@
+﻿using System;
+using ShipTester.Model;
+
+namespace ShipTester.Helper
+{
+    public static class PositionHelper
+    {
+        public static double GetHeading(Position ship, Position port)
+        {
+            var y = Math.Sin(port.Longitude - ship.Longitude) * Math.Cos(port.Latitude);
+            var x = Math.Cos(ship.Latitude) * Math.Sin(port.Latitude) -
+                    Math.Sin(ship.Latitude) * Math.Cos(port.Latitude) * Math.Cos(port.Longitude - ship.Longitude);
+            return Math.Atan2(y, x) * (180 / Math.PI);
+        }
+    }
+}

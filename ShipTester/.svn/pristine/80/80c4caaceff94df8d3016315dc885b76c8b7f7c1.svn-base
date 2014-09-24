@@ -1,0 +1,108 @@
+﻿// <copyright file="Polygon.cs" company="Saturn Systems">
+// ShipTester, ShipTester
+// by
+// Saturn Systems, 04/09/2014
+// Megan McChesney
+// </copyright>
+
+namespace ShipTester.Model
+{
+    using System;
+    using System.Collections.Generic;
+
+    /// <summary>
+    /// A polygon represents an area defined by an array of positions. This implementation by Patrick Mullen
+    /// is useful when you have many points that need to be tested against the same polygon. For efficiency
+    /// purposes please make the polygon convex.
+    /// </summary>
+    public class Polygon
+    {
+        public string Name { get; protected set; }
+        public int PolySides { get; protected set; }
+        public IList<float> PolyX { get; protected set; }
+        public IList<float> PolyY { get; protected set; }
+        public float[] Constant { get; protected set; }
+        public float[] Multiple { get; protected set; }
+
+        public Polygon(string name, Position[] positions )
+        {
+            this.Name = name;
+
+            // the amount of corners the polygon has
+            this.PolySides = positions.Length;
+            
+            // Constant = new float[positions.Length];
+            // Multiple = new float[positions.Length];
+            this.PolyX = new List<float>();
+            this.PolyY = new List<float>();
+
+            foreach (Position pos in positions)
+            {
+                this.PolyX.Add((float)pos.Longitude);
+                this.PolyY.Add((float)pos.Latitude);
+            }
+
+            // precalc_values();
+        }
+
+        //// patrick mullen implementation, has cases where the algorithm is incorrect
+        //// void precalc_values()
+        //// {
+        ////    int i, j = PolySides - 1;
+        ////    for (i = 0; i < PolySides; i++)
+        ////    {
+        ////        if (PolyY[j] == PolyY[i])
+        ////        {
+        ////            Constant[i] = PolyX[i];
+        ////            Multiple[i] = 0;
+        ////        }
+        ////        else
+        ////        {
+        ////            Constant[i] = PolyX[i] - (PolyY[i] * PolyX[j]) / (PolyY[j] - PolyY[i]) + (PolyY[i] * PolyY[i]) / (PolyY[j] - PolyY[i]);
+        ////            Multiple[i] = (PolyX[j] - PolyX[i]) / (PolyY[j] - PolyY[i]);
+        ////        }
+        ////        j = i;
+        ////    }
+        //// }
+
+        public static bool operator ==(Polygon a, Polygon b)
+        {
+            if ((object)a == null)
+            {
+                throw new ArgumentNullException();
+            }
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(Polygon a, Polygon b)
+        {
+            return !(a == b);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Name.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Polygon && this.Equals((Polygon)obj);
+        }
+
+        public bool Equals(Polygon other)
+        {
+            if (ReferenceEquals(null, other))
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            return this.Name.Equals(other.Name);
+        }
+
+        public override string ToString()
+        {
+            return this.Name;
+        }
+    }
+}

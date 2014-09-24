@@ -1,0 +1,38 @@
+﻿using System;
+using System.Collections.Generic;
+using ShipTester.Extensions;
+
+namespace ShipTester.Permutation
+{
+    public abstract class Permutator<TValue, TResult> : IPermutator<TResult>
+    {
+        public Func<IEnumerable<TResult>> Create { get; set; }
+
+        public Action<TValue, TResult> Permute { get; set; }
+
+        public IEnumerable<TResult> GetPermutations()
+        {
+            foreach (var permutation in CreateInputPermutations())
+            {
+                var cloneable = permutation.Serialize();
+
+                foreach (var value in GetValues())
+                {
+                    var clone = cloneable.Deserialize<TResult>();
+                    if (Permute != null)
+                        Permute(value, clone);
+                    yield return clone;
+                }
+            }
+        }
+
+        protected virtual IEnumerable<TResult> CreateInputPermutations()
+        {
+            if (Create != null)
+                return Create();
+            return new [] { (TResult)Activator.CreateInstance(typeof(TResult)) };
+        }
+
+        public abstract IEnumerable<TValue> GetValues();
+    }
+}

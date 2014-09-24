@@ -1,0 +1,23 @@
+﻿namespace ShipTester.Permutation
+{
+    using System;
+    using System.Collections.Generic;
+
+    /// <summary>
+    /// Interface to use Ship Tester's Permutator
+    /// </summary>
+    /// <typeparam name="T">ship Test</typeparam>
+    public interface IPermutator<T>
+    {
+        /// <summary>
+        /// Gets or sets create function for Permutator
+        /// </summary>
+        Func<IEnumerable<T>> Create { get; set; }
+
+        /// <summary>
+        /// Interface to GetPermutations in Permutator.cs
+        /// </summary>
+        /// <returns>permutations of Ship Test Permutator properties</returns>
+        IEnumerable<T> GetPermutations();
+    }
+}

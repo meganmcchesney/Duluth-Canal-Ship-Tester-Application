@@ -1,0 +1,40 @@
+﻿using ShipTester.Extensions;
+
+namespace ShipTester.Model
+{
+    public static class Areas
+    {
+        //public static Polygon ReceiverRange = new Polygon("Range of Receiver", new Position[] 
+        //{ new Position("", 46.941925, -90.866587), 
+        //    new Position("", 47.256032, -91.328013), 
+        //    new Position("", 46.726784, -92.329828), 
+        //    new Position("", 46.630680, -92.051050) 
+        //});
+
+        //public static Polygon test = new Polygon("face", new Position[] 
+        //{ new Position("", 46.941925, -90.866587), 
+        //    new Position("", 47.256032, -91.328013), 
+        //    new Position("", 46.726784, -92.329828), 
+        //    new Position("", 46.630680, -92.051050) 
+        //});
+
+        public static Polygon InsideHarbor = new Polygon("InsideHarbor", new Position[]
+        {
+            new Position("SteelCreek", 46.680667, -92.242970),
+            new Position("FirstStreet", 46.784999, -92.103281), 
+            new Position("NearSuperiorCanal", 46.750959, -92.065558), 
+            new Position("AllouezBay",46.686494, -92.011296 )
+        });
+
+        public static Polygon StLouisBay = new Polygon("StLouisBay", new Position[]
+        {
+            new Position("IndianPointPark", 46.721871, -92.188469), 
+            new Position("RicesPoint", 46.766571, -92.120834), 
+            new Position("BlatnikBridge", 46.748930, -92.098175), 
+            new Position("StLouisRiver", 46.705511, -92.150360)
+        });
+
+        public static Polygon[] All = typeof(Areas).GetFieldValues<Polygon>();
+
+    }
+}

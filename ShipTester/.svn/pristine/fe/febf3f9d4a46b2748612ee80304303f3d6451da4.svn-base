@@ -1,0 +1,59 @@
+﻿using ShipTester.Model;
+using System.Collections.Generic;
+
+namespace ShipTester
+{
+    public static class ShipTestProcessor
+    {
+        public static void Execute(IEnumerable<ShipTest> shipTests)
+        {
+            foreach (var shipTest in shipTests)
+                Update(shipTest);
+        }
+
+        private static void Update(ShipTest shipTest)
+        {
+            //add field to ship table for "Ship passed through a canal"
+            //add (2) fields to ship table - actual time of canal use timestamp
+            //for ships where navigational status = underway using engine
+         
+            //step 1 : polygon WestLakeSuperior
+            //populate derivedETA with reported ETA 
+
+            //step 2: 
+            //within 50 miles of canal but outside harbor, 
+            //weight ship destination with derived heading to infer ship course. 
+            //calculate difference between two nearest ports
+            //if(heading to reported destination < 2/3(nearest port 1 - nearest port 2){ deriveETA to nearest port}
+            //else deriveETA to other port
+            //calculate derivedETA according to distance and speed
+
+            //step 3: 
+            //inside harbor
+            //for every ship where field "Ship passed through a canal" = entered
+            //define st. louis bay zone. Every ship in this zone will have calculated derivedETA
+            //calculation for st. louis bay zone must increase line of sight ETA by a factor based on current heading vs. needed heading
+            
+            //any ship outside st. louis bay zone, but still inside harbor
+            //calculate derived ETA once status = underway using engine
+            //Once a ship changes heading such that heading is nearer to superior than duluth canal, 
+            //derived ETA is no longer calculated
+
+
+
+
+
+
+            if (!shipTest.IsInDuluthSuperiorPort() &&
+                //ship stated destination is Duluth and the heading is less than 90 degrees difference or
+                (shipTest.Destination.Equals(Ports.Duluth) && shipTest.IsHeadingToward(shipTest.Destination)) ||
+                //ship heading is less that 90 degrees from Duluth heading and more than 90 degrees from stated destination
+                (shipTest.IsHeadingToward(Ports.Duluth) && !shipTest.IsHeadingToward(shipTest.Destination)))
+                //then CanalETA populates as calculated
+                shipTest.DuluthCanalETAResult = DuluthCanalETAResult.Calculated;
+
+            // miles ship is from the lift Bridge.
+            shipTest.DirectDistanceToLiftBridge = Helper.GeoHelper.DistanceBetweenCoord(ShipPositions.AerialLiftBridge, shipTest.Position);
+        }
+    }
+}

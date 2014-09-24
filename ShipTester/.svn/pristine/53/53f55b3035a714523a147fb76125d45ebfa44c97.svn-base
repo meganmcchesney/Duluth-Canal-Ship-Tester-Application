@@ -1,0 +1,44 @@
+﻿using ShipTester.Helper;
+using ShipTester.Model;
+using System;
+using System.Collections.Generic;
+
+namespace ShipTester
+{
+    public static class ShipTestEvaluator
+    {
+        public static void Evaluate(IEnumerable<ShipTest> shipTests)
+        {
+            foreach (var shipTest in shipTests)
+                Evaluate(shipTest);
+        }
+
+        public static void Evaluate(ShipTest shipTest)
+        {
+            if (shipTest.IsUnderway())
+            {
+                if (shipTest.IsWithinFiftyMilesOfDuluth())
+                {
+                    //Inside Harbor
+                    if (shipTest.IsInDuluthSuperiorHarborForMoreThanHour())
+                    {
+                        shipTest.Evaluation = shipTest.IsInStLouisBay() || shipTest.IsMovingTowardDuluth();
+                    }
+                    //Outside Harbor
+                    else
+                    {
+                        shipTest.Evaluation = shipTest.IsHeadingTowardDuluth();
+                    }
+                }
+                else
+                {
+                    shipTest.Evaluation = shipTest.IsDestinationDuluth() && shipTest.IsMovingTowardDuluth();
+                }
+            }
+
+            shipTest.Evaluation = shipTest.Evaluation == shipTest.DerivedEta.HasValue;
+            shipTest.Tally = Convert.ToInt32(shipTest.Evaluation);
+
+        }
+    }
+}

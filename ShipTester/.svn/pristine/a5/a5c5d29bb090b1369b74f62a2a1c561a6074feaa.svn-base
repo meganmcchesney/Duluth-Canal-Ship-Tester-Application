@@ -1,0 +1,56 @@
+﻿namespace ShipTester.Tests.Helper
+{
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    [TestClass]
+    public class ShipTestExtensionsTests
+    {
+        [TestMethod]
+        public void SuccessfulIsInDuluthSuperiorHarbor()
+        {
+
+        }
+
+        [TestMethod]
+        public void SuccessfulIsInStLouisBay()
+        {
+
+        }
+
+        [TestMethod]
+        public void SuccessfulIsUnderwayTest()
+        {
+
+        }
+
+        [TestMethod]
+        public void SuccessfulIsWithinFiftyMilesOfDuluthTest()
+        {
+
+        }
+
+        [TestMethod]
+        public void SuccessfulIsDestinationDuluthTest()
+        {
+
+        }
+
+        [TestMethod]
+        public void SuccessfulIsMovingTowardDuluthTest()
+        {
+
+        }
+
+        [TestMethod]
+        public void SuccessfulIsInDuluthSuperiorHarborForMoreThanHourTest()
+        {
+
+        }
+
+        [TestMethod]
+        public void SuccessfulIsHeadingTowardDuluthTest()
+        {
+
+        }
+    }
+}

@@ -1,0 +1,24 @@
+﻿namespace ShipTester.Extensions
+{
+using System;
+using System.Linq;
+
+    public static class TypeExtensions
+    {
+        /// <summary>
+        /// Uses reflection to enumerate Areas, Ports, ShipPositions, etc.
+        /// </summary>
+        /// <typeparam name="T">The type array of the objects</typeparam>
+        /// <param name="type">the type of the object</param>
+        /// <returns> An array of objects sharing the same type</returns>
+        public static T[] GetFieldValues<T>(this Type type)
+        {
+            return type
+                .GetFields()
+                .Select(p => p.GetValue(null))
+                .Where(p => p != null)
+                .Cast<T>()
+                .ToArray();
+        }
+    }
+}

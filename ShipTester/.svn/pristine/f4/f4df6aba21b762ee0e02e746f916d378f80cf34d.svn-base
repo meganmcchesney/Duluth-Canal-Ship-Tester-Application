@@ -1,0 +1,22 @@
+﻿// <copyright file="StringExtensions.cs" company="Saturn Systems">
+// ShipTester, ShipTester
+// by
+// Saturn Systems, 22/08/2014
+// Megan McChesney
+// </copyright>
+
+namespace ShipTester.Extensions
+{
+    using System.Collections.Generic;
+    using System.Linq;
+
+    public static class StringExtensions
+    {
+        private const string Seperator = ",";
+
+        public static string Join(this IEnumerable<object> objects, string seperator = Seperator)
+        {
+            return string.Join(seperator, objects.ToArray());
+        }
+    }
+}

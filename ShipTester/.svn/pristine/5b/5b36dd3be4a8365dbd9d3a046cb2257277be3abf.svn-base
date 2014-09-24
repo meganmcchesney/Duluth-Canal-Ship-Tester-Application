@@ -1,0 +1,38 @@
+﻿namespace ShipTester.ShipTesting
+{
+    using ShipTester.Model;
+    using System;
+
+    [Serializable]
+    public class ShipTest
+    {
+        public ShipTest()
+        {
+            this.Eta = DateTime.UtcNow.AddDays(1);
+        }
+
+        public Position Position { get; set; }
+
+        public double Speed { get; set; }
+
+        public NavigationalStatus NavigationalStatus { get; set; }
+
+        public double Heading { get; set; }
+
+        public Position Destination { get; set; }
+
+        public DateTime? Eta { get; set; }
+
+        public DateTime? CanalEntryTimestamp { get; set; }
+        
+        public DateTime? DerivedEta { get; set; }
+
+        public DuluthCanalEtaResult? DuluthCanalEtaResult { get; set; }
+
+        public bool? Evaluation { get; set; }
+
+        public int Tally { get; set; }
+
+        public string Note { get; set; }
+    }
+}

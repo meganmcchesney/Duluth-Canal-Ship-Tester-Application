@@ -1,0 +1,76 @@
+﻿using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using ShipTester.Extensions;
+using ShipTester.Helper;
+using ShipTester.Model;
+
+namespace ShipTester
+{
+    class Program
+    {
+        private static void Main()
+        {
+            //RunShipTests();
+            //TestGetHeading();
+            TestPointInPolygon();
+        }
+
+        private static void RunShipTests()
+        {
+            // Generate a collection of ship tests
+            var shipTests = ShipTestPermutator.GetShipTests().ToArray();
+
+            // Process all the ship tests
+            ShipTestProcessor.Execute(shipTests);
+
+            // Evaluate all the ship tests
+            ShipTestEvaluator.Evaluate(shipTests);
+
+            // Write out and view the ship tests
+            Process.Start("Excel", ShipTestWriter.Write(shipTests));
+        }
+
+        private static void TestGetHeading()
+        {
+            var path = Path.ChangeExtension(
+                Path.GetTempFileName(),
+                "csv"
+            );
+
+            using (var writer = new StreamWriter(path))
+                ShipPositions.All.SelectMany(
+                    p => Ports.All.Select(q =>
+                        new {
+                            Ship = p,
+                            Port = q,
+                            Heading = GeoHelper.GetHeading(p, q)
+                        }
+                    )
+                ).ToCsv(writer);
+
+            Process.Start("Excel", path);
+        }
+
+        private static void TestPointInPolygon()
+        {
+            var path = Path.ChangeExtension(
+                Path.GetTempFileName(),
+                "csv"
+                );
+
+            using (var writer = new StreamWriter(path))
+                ShipPositions.All.SelectMany(
+                    p => Areas.All.Select(a =>
+                        new
+                        {
+                            Ship = p,
+                            Area = a,
+                            IsInArea = GeoHelper.IsPointInPolygon(p, a)
+                        }
+                    )
+                  ).ToCsv(writer);
+            Areas.All.ToString();
+        }
+    }
+}

@@ -1,0 +1,8 @@
+C:\Users\mmcchesney.SATSYS\Documents\Duluth Shipping\ShipTester\ShipTester.Tests\bin\Debug\ShipTester.Tests.dll
+C:\Users\mmcchesney.SATSYS\Documents\Duluth Shipping\ShipTester\ShipTester.Tests\bin\Debug\ShipTester.Tests.pdb
+C:\Users\mmcchesney.SATSYS\Documents\Duluth Shipping\ShipTester\ShipTester.Tests\bin\Debug\ShipTester.exe
+C:\Users\mmcchesney.SATSYS\Documents\Duluth Shipping\ShipTester\ShipTester.Tests\bin\Debug\ShipTester.pdb
+C:\Users\mmcchesney.SATSYS\Documents\Duluth Shipping\ShipTester\ShipTester.Tests\bin\Debug\ShipTester.xml
+C:\Users\mmcchesney.SATSYS\Documents\Duluth Shipping\ShipTester\ShipTester.Tests\obj\Debug\ShipTester.Tests.csprojResolveAssemblyReference.cache
+C:\Users\mmcchesney.SATSYS\Documents\Duluth Shipping\ShipTester\ShipTester.Tests\obj\Debug\ShipTester.Tests.dll
+C:\Users\mmcchesney.SATSYS\Documents\Duluth Shipping\ShipTester\ShipTester.Tests\obj\Debug\ShipTester.Tests.pdb

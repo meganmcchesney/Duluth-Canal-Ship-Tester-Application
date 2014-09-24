@@ -1,0 +1,151 @@
+﻿using System;
+using ShipTester.Helper;
+using ShipTester.Model;
+using System.Collections.Generic;
+
+namespace ShipTester
+{
+    public static class ShipTestProcessor
+    {
+        public static void Execute(IEnumerable<ShipTest> shipTests)
+        {
+            foreach (var shipTest in shipTests)
+                Update(shipTest);
+        }
+
+        private static void Update(ShipTest shipTest)
+        {
+            //timestamp for when a ship first reports a position inside the harbor
+            shipTest.CanalEntryTimestamp = MarkShipEvent(shipTest);
+
+
+
+
+
+            if (!shipTest.IsInDuluthSuperiorPort() &&
+                //ship stated destination is Duluth and the heading is less than 90 degrees difference or
+                (shipTest.Destination.Equals(Ports.Duluth) && shipTest.IsHeadingToward(shipTest.Destination)) ||
+                //ship heading is less that 90 degrees from Duluth heading and more than 90 degrees from stated destination
+                (shipTest.IsHeadingToward(Ports.Duluth) && !shipTest.IsHeadingToward(shipTest.Destination)))
+                //then CanalETA populates as calculated
+                shipTest.DuluthCanalETAResult = DuluthCanalETAResult.Calculated;
+
+            // miles ship is from the lift Bridge.
+            shipTest.DirectDistanceToLiftBridge = Helper.GeoHelper.DistanceBetweenCoord(ShipPositions.AerialLiftBridge, shipTest.Position);
+        }
+
+        static DateTime? MarkShipEvent(ShipTest shipTest)
+        {
+            if (GeoHelper.IsPointInPolygon(shipTest.Position, Areas.InsideHarbor))
+            {
+                shipTest.CanalEntryTimestamp = DateTime.Now;
+            }
+            else
+            {
+                shipTest.CanalEntryTimestamp = null;
+            }
+            return shipTest.CanalEntryTimestamp;
+        }
+
+        /*data processing algorithm
+         * Define 2 area:
+            1. InsideHarborZone
+            2. StLouisBayZone
+            done
+            
+            add field to shipTest class:
+            1. canalEntryTimestamp = TimeStamp
+            done 
+ 
+             // set ShipEvent field to entered or exited
+             markShipEvent(Ship ship){  
+             
+                 IsPointInPolygon(Position ship, Area InsideHarbor);
+         
+                 if(IsPointInPolygon){
+                    canalEntryTimestamp = DateTime.Now();
+                 } 
+            }
+            done
+            
+             
+            private static void Update(ShipTest shipTest)
+            {
+               foreach (ship in shipTest){
+                    if (ship.navigationalStatus start with "underway"){
+                       
+                            if ( ship.longitude < -92.00000 && ship inside harbor && shipEvent == "entered"){
+                                if (ship in StLouisBayZone){
+                                    deriveStLouisBayZoneEta()
+                                } 
+                                else 
+                                {
+                                    checkShipHeading()
+                                }
+                            }             
+                            else {
+
+                                var distanceToCanal = DistanceBetweenCoord(double destLat, double destLong, double currLat, double currLong, double radius = EarthRadiusMiles)
+
+                                if (distanceToCanal >= 50 miles){
+                                    derivedETA = reported ETA 
+                                } 
+                                else (distanceToCanal < 50 miles) 
+                                {
+                                    DeriveShipDestination()
+                                }
+                            }
+                        }
+                    }
+                } 
+            }
+
+
+            //calculation for ship in st. louis bay zone to duluth canal.
+            //derivedETA should increase line of sight ETA by a factor based on current heading vs. needed heading
+            //we need to factor in the peninsula that these ships go around when traveling from st.Louis Bay to duluth canal
+            deriveStLouisBayZoneEta(){}
+
+            //Once a ship in StLouisBayZone changes heading such that heading is nearer to superior than duluth canal, 
+            //derivedETA is no longer calculated
+            checkShipHeading(){
+             * 
+             * Brandon thinks we should use nearest port based on heading differential and/or the 90 degree check
+             * 
+                 if (310 < ship.heading <= 95 degrees){ 
+                   ship.destination = Duluth;
+                   deriveShipEta(Port Duluth);
+                 } elseif (95 < ship.heading <= 230 degrees) { 
+                    ship.destination = Superior;
+                 } else {
+                    ship.destination = StLouisBay;
+                 }
+            }
+
+            //weight ship destination with derived heading to infer ship course.
+            deriveShipDestination(){
+             * compareHeadingToAllKnownPorts(Ship ship)
+             * order the list from least change to most change - Superior, Duluth, Two Harbors, Silver Bay
+             * 
+                var portDiff = nearest port 1 - next nearest port 2
+                if(reported heading is within 2/3(portDiff){
+                    deriveShipEta(ship, nearest port 1)
+
+                    if(nearest port 1 = Duluth){
+                        save derivedETA
+                    }
+                }
+            }
+
+
+            //calculate derivedETA according to distance and speed
+            deriveShipEta(Position position, Port port){
+             * we may want to account for data lag
+             * - 4 minutes
+             * 
+             
+             }
+                        */
+
+    }
+}

@@ -1,0 +1,14 @@
+﻿using System.Collections.Generic;
+
+namespace ShipTester.Permutation
+{
+    public class EnumerablePermutator<TValue, TResult> : Permutator<TValue, TResult>
+    {
+        public IEnumerable<TValue> Values { get; set; }
+
+        public override IEnumerable<TValue> GetValues()
+        {
+            return Values;
+        }
+    }
+}

@@ -1,0 +1,87 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ShipTester.Model;
+
+namespace ShipTester.Model
+{
+
+    /// <summary>
+    /// A polygon represents an area defined by an array of positions. This implementation by Patrick Mullen
+    /// is useful when you have many points that need to be tested against the same polygon. For efficiency
+    /// purposes please make the polygon convex.
+    /// </summary>
+    public class Polygon
+    {
+        public string Name { get; protected set; }
+        public int PolySides { get; protected set; }
+        public IList<double> PolyX { get; protected set; }
+        public IList<double> PolyY { get; protected set; }
+        public double[] Constant { get; protected set; }
+        public double[] Multiple { get; protected set; }
+
+        public Polygon(string name, Position[] positions )
+        {
+            Name = name;
+            PolySides = positions.Length;
+            
+            Constant = new double[positions.Length];
+            Multiple = new double[positions.Length];
+
+            foreach (Position pos in positions)
+            {
+                PolyX.Add(pos.Longitude);
+                PolyY.Add(pos.Latitude);
+            }
+
+            precalc_values();
+        }
+
+        void precalc_values()
+        {
+            int i, j = PolySides - 1;
+            for (i = 0; i < PolySides; i++)
+            {
+                if (PolyY[j] == PolyY[i])
+                {
+                    Constant[i] = PolyX[i];
+                    Multiple[i] = 0;
+                }
+                else
+                {
+                    Constant[i] = PolyX[i] - (PolyY[i] * PolyX[j]) / (PolyY[j] - PolyY[i]) + (PolyY[i] * PolyY[i]) / (PolyY[j] - PolyY[i]);
+                    Multiple[i] = (PolyX[j] - PolyX[i]) / (PolyY[j] - PolyY[i]);
+                }
+                j = i;
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Polygon && Equals((Polygon)obj);
+        }
+
+        public bool Equals(Polygon other)
+        {
+            if (ReferenceEquals(null, other))
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            return Name.Equals(other.Name);
+        }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
+}

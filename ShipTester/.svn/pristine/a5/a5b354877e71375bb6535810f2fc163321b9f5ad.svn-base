@@ -1,0 +1,26 @@
+﻿namespace ShipTester.Permutation
+{
+    using System.Collections.Generic;
+
+    /// <summary>
+    /// Creates permutations of all
+    /// </summary>
+    /// <typeparam name="TValue">ShipTest permutator</typeparam>
+    /// <typeparam name="TResult">IEnumerable ShipTest</typeparam>
+    public class EnumerablePermutator<TValue, TResult> : Permutator<TValue, TResult>
+    {
+        /// <summary>
+        /// Gets or sets properties of the permutator
+        /// </summary>
+        public IEnumerable<TValue> Values { get; set; }
+
+        /// <summary>
+        /// retrieves all values of permutations
+        /// </summary>
+        /// <returns>IEnumerable array of shipTest permutations</returns>
+        public override IEnumerable<TValue> GetValues()
+        {
+            return this.Values;
+        }
+    }
+}

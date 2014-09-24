@@ -1,0 +1,138 @@
+﻿using System;
+using System.Linq;
+using ShipTester.Helper;
+using ShipTester.Model;
+using System.Linq;
+
+namespace ShipTester
+{
+    public static class ShipTestExtensions
+    {
+        private const double HeadingTowardThreshold = 90;
+
+        public static bool IsInDuluthSuperiorHarbor(this ShipTest shipTest)
+        {
+            return GeoHelper.IsPointInPolygon(shipTest.Position, Areas.DuluthSuperiorHarbor);
+        }
+
+        public static bool IsMovingToward(this ShipTest shipTest, Position position)
+        {
+            var heading = GeoHelper.GetHeading(shipTest.Position, position);
+            var difference = Math.Abs(shipTest.Heading - heading);
+            return difference <= HeadingTowardThreshold;
+        }
+
+        public static bool IsInStLouisBay(this ShipTest shipTest)
+        {
+            return GeoHelper.IsPointInPolygon(shipTest.Position, Areas.StLouisBay);
+        }
+
+        public static bool IsUnderway(this ShipTest shipTest)
+        {
+            return shipTest.NavigationalStatus == NavigationalStatus.Underway;
+        }
+
+        public static bool IsWithinFiftyMilesOfDuluth(this ShipTest shipTest)
+        {
+            return GeoHelper.DistanceBetweenCoord(shipTest.Position, Ports.Duluth) <= 50;
+        }
+
+        public static bool IsDestinationDuluth(this ShipTest shipTest)
+        {
+            return shipTest.Destination == Ports.Duluth;
+        }
+
+        public static bool IsMovingTowardDuluth(this ShipTest shipTest)
+        {
+            return shipTest.IsMovingToward(Ports.Duluth);
+        }
+
+        public static bool IsInDuluthSuperiorHarborForMoreThanHour(this ShipTest shipTest)
+        {
+            return shipTest.CanalEntryTimestamp.HasValue && shipTest.CanalEntryTimestamp < DateTime.UtcNow.AddHours(-1);
+        }
+
+        public static bool IsHeadingTowardDuluth(this ShipTest shipTest)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static bool ConfirmHeading(ShipTest shipTest, Position[] ports)
+        {
+            var destinationBearing = GeoHelper.GetHeading(shipTest.Position, shipTest.Destination);
+            var portBearing0 = GeoHelper.GetHeading(shipTest.Position, ports[0]);
+            var portBearing1 = GeoHelper.GetHeading(shipTest.Position, ports[1]);
+            var portDiff = Math.Abs(portBearing0 - portBearing1);
+            var bearingVariance = 2 * portDiff / 3;
+
+            if (destinationBearing >= shipTest.Heading - portDiff && destinationBearing <= shipTest.Heading + portDiff)
+            {
+                return true;
+            }
+            else return false;
+        }
+
+        private static Position NearestPortByBearing(ShipTest shipTest, Position[] ports)
+        {
+            Position NearestPort = null;
+            double leastDifferential = 361;
+            foreach (Position port in ports)
+            {
+                double currentDifferential = CalculateDifferential(GeoHelper.GetHeading(shipTest.Position, port), shipTest.Heading);
+                if (currentDifferential <= leastDifferential)
+                {
+                    leastDifferential = currentDifferential;
+                    NearestPort = port;
+                }
+            }
+            return NearestPort;
+        }
+
+        private static Position[] TwoNearestPortsByBearing(ShipTest shipTest, Position[] ports)
+        {
+            Position NearestPort = null;
+            Position SecondNearestPort = null;
+            double leastDifferential = 361;
+            double secondLeastDifferential = 361;
+
+            foreach (Position port in ports)
+            {
+                double currentDifferential = CalculateDifferential(GeoHelper.GetHeading(shipTest.Position, port), shipTest.Heading);
+                if (currentDifferential <= secondLeastDifferential)
+                {
+                    if (currentDifferential <= leastDifferential)
+                    {
+                        secondLeastDifferential = leastDifferential;
+                        SecondNearestPort = NearestPort;
+                        leastDifferential = currentDifferential;
+                        NearestPort = port;
+                    }
+                    else
+                    {
+                        secondLeastDifferential = currentDifferential;
+                        SecondNearestPort = port;
+                    }
+
+                }
+            }
+
+            return new Position[] { NearestPort, SecondNearestPort };
+        }
+
+        //given two angles, returns the smaller angle between them
+        private static double CalculateDifferential(double bearing, double heading)
+        {
+            double differential = bearing - heading;
+            if (differential > 180)
+            {
+                differential -= 360;
+            }
+            else if (differential <= -180)
+            {
+                differential += 360;
+            }
+
+            return Math.Abs(differential);
+        }
+    }
+}

@@ -1,0 +1,51 @@
+﻿using System;
+
+namespace ShipTester.Model
+{
+    [Serializable]
+    public class Position
+    {
+        #region Public Properties
+
+        public string Name { get; protected set; }
+
+        public double Latitude { get; protected set; }
+
+        public double Longitude { get; protected set; }
+
+        #endregion
+
+        public Position(string name, double latitude, double longitude)
+        {
+            Name = name;
+            Latitude = latitude;
+            Longitude = longitude;
+        }
+
+        public override int GetHashCode()
+        {
+            return Name.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Position && Equals((Position)obj);
+        }
+
+        public bool Equals(Position other)
+        {
+            if (ReferenceEquals(null, other))
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            return Name.Equals(other.Name);
+        }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
+}

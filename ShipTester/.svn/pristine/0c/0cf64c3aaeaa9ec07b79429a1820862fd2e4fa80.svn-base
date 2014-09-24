@@ -1,0 +1,24 @@
+﻿namespace ShipTester
+{
+    using System.Collections.Generic;
+    using System.IO;
+    using ShipTester.Extensions;
+    using ShipTester.Model;
+
+    public static class ShipTestWriter
+    {
+        public static string Write(IEnumerable<ShipTest> shipTests, string path = null)
+        {
+            if (string.IsNullOrEmpty(path))
+                path = Path.ChangeExtension(
+                    Path.GetTempFileName(),
+                    "csv"
+                );
+
+            using (var writer = new StreamWriter(path))
+                shipTests.ToCsv(writer);
+
+            return path;
+        }
+    }
+}

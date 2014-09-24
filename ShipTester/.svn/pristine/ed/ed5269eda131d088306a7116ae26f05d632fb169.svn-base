@@ -1,0 +1,38 @@
+﻿using System.Linq;
+
+namespace ShipTester.Tests.Helper
+{
+    using System;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Extensions;
+
+    [TestClass]
+    public class DoubleExtensionTests
+    {
+        [TestMethod]
+        public void SuccessfulRadianTest()
+        {
+            var numbers = Enumerable.Range(0 , 360);
+            foreach (int i in numbers)
+            {
+                var input = i;
+                double expected = i * Math.PI/180;
+                double actual = DoubleExtensions.ToRadians(input);
+                Assert.AreEqual(expected, actual);
+            }
+        }
+
+        [TestMethod]
+        public void SuccessfulDegreeTest()
+        {
+            var degrees = Enumerable.Range(0, 360);
+            foreach (int i in degrees)
+            {
+                var input = i;
+                double expected = i * 180 / Math.PI;
+                double actual = DoubleExtensions.ToDegrees(input);
+                Assert.AreEqual(expected, actual);
+            }
+        }
+    }
+}

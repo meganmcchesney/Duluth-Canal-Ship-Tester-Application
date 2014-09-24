@@ -1,0 +1,156 @@
+﻿using ShipTester.Model;
+using System.Collections.Generic;
+
+namespace ShipTester
+{
+    public static class ShipTestProcessor
+    {
+        public static void Execute(IEnumerable<ShipTest> shipTests)
+        {
+            foreach (var shipTest in shipTests)
+                Update(shipTest);
+        }
+
+        private static void Update(ShipTest shipTest)
+        {
+
+            /*Define 2 zones:
+            1. InsideHarborZone
+            2. StLouisBayZone
+
+            add (3) fields to ship table:
+            1. shipEvent = entered/exited  (string)
+            2. shipEventLocation = DuluthCanal/SuperiorCanal(string)
+            3. shipEventTimestamp = TimeStamp
+
+             
+             
+ 
+             // set ShipEvent field to entered or exited
+             markShipEvent(Ship ship){  
+             
+                var shipLocation = markShipEventLocation(ship.latitude, ship.longitude);
+             
+                if ship passed a canal threshold {
+                    if (310 <= ship.heading <= 130){
+                     ship.shipEvent = exited
+                     } else (310 > ship.heading > 130){
+                     ship.shipEvent = entered
+                     }
+                }
+            }
+             
+             
+             //compare location data stored in current shipObject to newly received ship.location data
+             //used to help determine when / if a ship passes a canal threshold point
+             markShipEventLocation(Position ship.latitude, Position ship.longitude){
+             
+                 bool locationChange = false;
+                 if (shipObject.latitude != ship.latitude || shipObject.longitude != ship.longtitude){
+                      locationChange = true;
+                 }
+             
+                 if (locationChange){
+                 did it pass by a canal threshold? 
+                 compare path of ship to position of canal
+                   DuluthCanal 46.778954, -92.092895
+                   SuperiorCanal 46.706455, -92.016707
+                 }
+             }
+             
+             
+             private static void Update(ShipTest shipTest)
+            {
+
+                foreach (ship in shipTest){
+                    if (ship.navigationalStatus = "underway using engine"){
+                        if(ship.longitude < -92.00000) {   // does this need the negative?
+                            if (ship inside harbor && shipEvent == "entered"){
+                                if (ship in StLouisBayZone){
+                                    deriveStLouisBayZoneEta()
+                                } 
+                                else 
+                                {
+                                    checkShipHeading()
+                                }
+                            }
+                            else (ship outside harbor){
+
+                                var distanceToCanal = DistanceBetweenCoord(double destLat, double destLong, double currLat, double currLong, double radius = EarthRadiusMiles)
+
+                                if (distanceToCanal >= 50 miles){
+                                    derivedETA = reported ETA 
+                                } 
+                                else (distanceToCanal < 50 miles) 
+                                {
+                                    DeriveShipDestination()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            //calculation for ship in st. louis bay zone to duluth canal.
+            //derivedETA should increase line of sight ETA by a factor based on current heading vs. needed heading
+            //we need to factor in the peninsula that these ships go around when traveling from st.Louis Bay to duluth canal
+            deriveStLouisBayZoneEta(){}
+
+            //Once a ship in StLouisBayZone changes heading such that heading is nearer to superior than duluth canal, 
+            //derivedETA is no longer calculated
+            checkShipHeading(){
+                 if (310 < ship.heading <= 95 degrees){ 
+                   ship.destination = Duluth;
+                   deriveShipEta(Port Duluth);
+                 } elseif (95 < ship.heading <= 230 degrees) { 
+                    ship.destination = Superior;
+                 } else {
+                    ship.destination = StLouisBay;
+                 }
+            }
+
+            //weight ship destination with derived heading to infer ship course.
+            deriveShipDestination(){
+                var portDiff = nearest port 1 - next nearest port 2
+                if(reported heading is within 2/3(portDiff){
+                    deriveShipEta(nearest port 1)
+
+                    if(nearest port 1 = Duluth){
+                        save derivedETA
+                    }
+                }
+                else
+                {
+                    deriveShipEta(next nearest port 2)
+
+                    if(next nearest port 2 = Duluth){
+                    save derivedETA
+                    }
+                }
+            }
+
+
+            //calculate derivedETA according to distance and speed
+            deriveShipEta(Port port){
+             
+             }
+                        */
+
+
+
+
+
+            if (!shipTest.IsInDuluthSuperiorPort() &&
+                //ship stated destination is Duluth and the heading is less than 90 degrees difference or
+                (shipTest.Destination.Equals(Ports.Duluth) && shipTest.IsHeadingToward(shipTest.Destination)) ||
+                //ship heading is less that 90 degrees from Duluth heading and more than 90 degrees from stated destination
+                (shipTest.IsHeadingToward(Ports.Duluth) && !shipTest.IsHeadingToward(shipTest.Destination)))
+                //then CanalETA populates as calculated
+                shipTest.DuluthCanalETAResult = DuluthCanalETAResult.Calculated;
+
+            // miles ship is from the lift Bridge.
+            shipTest.DirectDistanceToLiftBridge = Helper.GeoHelper.DistanceBetweenCoord(ShipPositions.AerialLiftBridge, shipTest.Position);
+        }
+    }
+}

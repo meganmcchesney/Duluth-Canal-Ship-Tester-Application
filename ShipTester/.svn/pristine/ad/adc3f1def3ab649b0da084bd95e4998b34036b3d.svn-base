@@ -1,0 +1,71 @@
+﻿// <copyright file="Position.cs" company="Saturn Systems">
+// ShipTester, ShipTester
+// by
+// Saturn Systems, 08/09/2014
+// Megan McChesney
+// </copyright>
+using System;
+
+namespace ShipTester.Model
+{
+    [Serializable]
+    public class Position
+    {
+        #region Public Properties
+
+        public string Name { get; protected set; }
+
+        public double Latitude { get; protected set; }
+
+        public double Longitude { get; protected set; }
+
+        #endregion
+
+        public Position(string name, double latitude, double longitude)
+        {
+            Name = name;
+            Latitude = latitude;
+            Longitude = longitude;
+        }
+
+        public override int GetHashCode()
+        {
+            return Name.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Position && Equals((Position)obj);
+        }
+
+        public bool Equals(Position other)
+        {
+            if (ReferenceEquals(null, other))
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            return Name.Equals(other.Name);
+        }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+
+        public static bool operator == (Position a, Position b)
+        {
+            if ((Object)a == null)
+            {
+               throw new ArgumentNullException();
+            }
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(Position a, Position b)
+        {
+            return !(a == b);
+        }
+    }
+}

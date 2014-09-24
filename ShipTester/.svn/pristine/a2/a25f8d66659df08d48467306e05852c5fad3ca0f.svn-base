@@ -1,0 +1,14 @@
+﻿// <copyright file="NavigationalStatus.cs" company="Saturn Systems">
+// ShipTester, ShipTester
+// by
+// Saturn Systems, 04/09/2014
+// Megan McChesney
+// </copyright>
+namespace ShipTester.Model
+{
+    public enum NavigationalStatus
+    {
+        //Other,
+        Underway
+    }
+}

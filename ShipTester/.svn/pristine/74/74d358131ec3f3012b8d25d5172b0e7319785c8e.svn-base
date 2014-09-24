@@ -1,0 +1,32 @@
+﻿namespace ShipTester.Model
+{
+    public class PositionAndHeading
+    {
+        public Position Position { get; set; }
+
+        public Port Heading { get; set; }
+
+        public override int GetHashCode()
+        {
+            return Position.GetHashCode() ^ Heading.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is PositionAndHeading && Equals((PositionAndHeading)obj);
+        }
+
+        public bool Equals(PositionAndHeading other)
+        {
+            if (ReferenceEquals(null, other))
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            return
+                Position.Equals(other.Position) &&
+                Heading.Equals(other.Heading);
+        }
+    }
+}

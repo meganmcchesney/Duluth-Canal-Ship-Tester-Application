@@ -1,0 +1,149 @@
+﻿using System;
+using ShipTester.Extensions;
+using ShipTester.Model;
+
+namespace ShipTester.Helper
+{
+    public static class GeoHelper
+    {
+        const double EarthRadiusMiles = 3959;
+        const double EarthRadiusKM = 6371;
+
+        public static double GetHeading(Position ship, Position port)
+        {
+            // Algorithm courtesy of Chris Veness
+            // http://www.movable-type.co.uk/scripts/latlong.html
+            var φ1 = ship.Latitude.ToRadians();
+            var φ2 = port.Latitude.ToRadians();
+            var Δλ = (port.Longitude - ship.Longitude).ToRadians();
+
+            var y = Math.Sin(Δλ) * Math.Cos(φ2);
+            var x = Math.Cos(φ1) * Math.Sin(φ2) -
+                    Math.Sin(φ1) * Math.Cos(φ2) * Math.Cos(Δλ);
+            var θ = Math.Atan2(y, x);
+
+            return (θ.ToDegrees() + 360) % 360;
+        }
+
+        public static bool IsPointInPolygon(Position ship, Polygon area)
+        {
+            bool oddNodes = false;
+            int j = area.PolySides - 1;
+
+            //Patrick Mullen implementation has errors
+            //for (int i = 0; i < area.PolySides; i++)
+            //{
+            //    if ((area.PolyY[i] < ship.Latitude && area.PolyY[j] >= ship.Latitude || area.PolyY[j] < ship.Latitude && area.PolyY[i] >= ship.Latitude))
+            //    {
+            //        oddNodes ^= (ship.Latitude * area.Multiple[i] + area.Constant[i] < ship.Longitude);
+            //    }
+            //    j = i;
+            //}
+            //return oddNodes;
+
+            for (int i = 0; i < area.PolySides; i++)
+            {
+                if ((area.PolyY[i] < ship.Latitude && area.PolyY[j] >= ship.Latitude)
+                || (area.PolyY[j] < ship.Latitude && area.PolyY[i] >= ship.Latitude))
+                {
+                    if (area.PolyX[i] + (ship.Latitude - area.PolyY[i]) / (area.PolyY[j] - area.PolyY[i]) * (area.PolyX[j] - area.PolyX[i]) < ship.Longitude)
+                    {
+                        oddNodes = !oddNodes;
+                    }
+                }
+                j = i;
+            }
+            return oddNodes;
+        }
+
+        /// <summary>
+        /// Distances the between coordinates.
+        /// </summary>
+        /// <param name="destLatLong">The destination lat long.</param>
+        /// <param name="currLatLong">The current lat long.</param>
+        /// <param name="isMiles">if set to <c>true</c> [miles] will be returned, else Kilometers between Coordinates.</param>
+        /// <returns>approximate distance between to points on a sphere (earth).</returns>
+        public static double DistanceBetweenCoord(Tuple<double, double> destLatLong, Tuple<double, double> currLatLong, bool isMiles)
+        {
+            double radius = EarthRadiusMiles;
+            if (!isMiles)
+                radius = EarthRadiusKM;
+            return DistanceBetweenCoord(destLatLong.Item1, destLatLong.Item2, currLatLong.Item1, currLatLong.Item2, radius);
+        }
+
+        /// <summary>
+        /// Distances between the coordinates.
+        /// </summary>
+        /// <param name="destLatLong">The destination lat long.</param>
+        /// <param name="currLatLong">The current lat long.</param>
+        /// <param name="radius">The radius of sphere (earth). 3959 Miles (default), 6371 KM </param>
+        /// <returns>returns approximate distance between to points on a sphere.</returns>
+        public static double DistanceBetweenCoord(Tuple<double, double> destLatLong, Tuple<double, double> currLatLong, double radius = EarthRadiusMiles)
+        {
+            return DistanceBetweenCoord(destLatLong.Item1, destLatLong.Item2, currLatLong.Item1, currLatLong.Item2, radius);
+        }
+
+        /// <summary>
+        /// Distances between the coordinates.
+        /// </summary>
+        /// <param name="destLatLong">The destination lat & long.</param>
+        /// <param name="currLatLong">The current lat & long.</param>
+        /// <param name="miles">if set to <c>true</c> [miles] will be returned, else Kilometers between Coordinates.</param>
+        /// <returns>approximate distance between to points on a sphere (earth).</returns>
+        public static double DistanceBetweenCoord(Position destLatLong, Position currLatLong, bool isMiles)
+        {
+            double radius = EarthRadiusMiles;
+            if (!isMiles)
+                radius = EarthRadiusKM; 
+            return DistanceBetweenCoord(destLatLong.Latitude, destLatLong.Longitude, currLatLong.Latitude, currLatLong.Longitude, radius);
+        }
+
+        /// <summary>
+        /// Distances between the coordinates.
+        /// </summary>
+        /// <param name="destLatLong">The destination lat long.</param>
+        /// <param name="currLatLong">The current lat long.</param>
+        /// <param name="radius">The radius of sphere (earth). 3959 Miles (default), 6371 KM </param>
+        /// <returns>returns approximate distance between to points on a sphere.</returns>
+        public static double DistanceBetweenCoord(Position destLatLong, Position currLatLong, double radius = EarthRadiusMiles)
+        {
+            return DistanceBetweenCoord(destLatLong.Latitude, destLatLong.Longitude, currLatLong.Latitude, currLatLong.Longitude, radius);
+        }
+
+        /// <summary>
+        /// Distances between the coordinates.
+        /// </summary>
+        /// <param name="destLat">The destination lat.</param>
+        /// <param name="destLong">The destination long.</param>
+        /// <param name="currLat">The current lat.</param>
+        /// <param name="currLong">The current long.</param>
+        /// <param name="radius">The radius of sphere (earth). 3959 Miles (default), 6371 KM  </param>
+        /// <returns>returns approximate distance between to points on a sphere.</returns>
+        public static double DistanceBetweenCoord(double destLat, double destLong, double currLat, double currLong, double radius = EarthRadiusMiles)
+        {
+            var φ1 = destLat.ToRadians();
+            var φ2 = currLat.ToRadians();
+            var Δφ = (currLat - destLat).ToRadians();
+            var Δλ = (currLong - destLong).ToRadians();
+
+            var a = Math.Sin(Δφ / 2) * Math.Sin(Δφ / 2) +
+                    Math.Cos(φ1) * Math.Cos(φ2) *
+                    Math.Sin(Δλ / 2) * Math.Sin(Δλ / 2);
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+            return radius * c;
+        }
+
+        //public Position LeastDifferencePort(Position[] ports, Position ship)
+        //{
+        //    //unrealistic starting number
+        //    double difference = 1000;
+        //    Position trueHeading = null;
+        //    foreach(Position port in ports)
+        //    {
+        //        if()
+        //    }
+        //    return trueHeading;
+        //}
+    }
+}

@@ -1,0 +1,27 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using ShipTester.Permutation;
+
+namespace ShipTester.Extensions
+{
+    public static class PermutationExtensions
+    {
+        public static IEnumerable<T> GetPermutations<T>(this IEnumerable<IPermutator<T>> source)
+        {
+            var permutators = source.ToList();
+
+            if (permutators.Count == 0)
+                throw new InvalidOperationException("The source must not be empty.");
+
+            var last = permutators.Last();
+
+            if (permutators.Count == 1)
+                return last.GetPermutations();
+
+            permutators.Remove(last);
+            last.Create = () => permutators.GetPermutations();
+            return last.GetPermutations();
+        }
+    }
+}

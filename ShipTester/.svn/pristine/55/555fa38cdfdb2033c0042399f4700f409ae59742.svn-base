@@ -1,0 +1,143 @@
+﻿namespace ShipTester.ShipTesting
+{
+    using System;
+    using System.Collections.Generic;
+    using Extensions;
+    using Helper;
+    using Model;
+
+    /// <summary>
+    /// Contains logic for sorting through ship test permutations
+    /// Goal is to derive an Eta to Duluth Canal for every ship predicted to use the canal
+    /// </summary>
+    public static class ShipTestProcessor
+    {
+        /// <summary>
+        /// This is the offset that will be applied to a canal entry timestamp based on the length of time a ship is required to have been in the harbor
+        /// </summary>
+        public static readonly double CanalEntryTimestampOffset = -1.6d;
+
+        /// <summary>
+        /// calculation to convert the time of datalag to a Timestamp
+        /// current data lag = 4 minutes
+        /// </summary>
+        public static readonly TimeSpan DataLag = TimeSpan.FromMinutes(4);
+
+        /// <summary>
+        /// calculation to convert 60 degrees to radians
+        /// </summary>
+        private static readonly double SixtyDegreesAsRadians = 60d.ToRadians();
+
+        /// <summary>
+        /// calculation for Sin of 60 degrees
+        /// </summary>
+        private static readonly double SinSixtyDegrees = Math.Sin(SixtyDegreesAsRadians);
+
+        /// <summary>
+        /// calculation for Cos of 60 degrees
+        /// </summary>
+        private static readonly double CosSixtyDegrees = Math.Cos(SixtyDegreesAsRadians);
+
+        /// <summary>
+        /// Executes ship test processing logic for every ship test permutation
+        /// </summary>
+        /// <param name="shipTests">list of ship test permutations</param>
+        public static void Execute(this IEnumerable<ShipTest> shipTests)
+        {
+            foreach (var shipTest in shipTests)
+            {
+                Update(shipTest);
+            }
+        }
+
+        /// <summary>
+        /// Method to populate a derived Eta for ships we deem will use Duluth Canal
+        /// </summary>
+        /// <param name="shipTest">ship test permutation</param>
+        public static void Update(this ShipTest shipTest)
+        {
+            var inHarbor = shipTest.IsInDuluthSuperiorHarbor();
+            if (inHarbor && !shipTest.CanalEntryTimestamp.HasValue)
+            {
+                shipTest.CanalEntryTimestamp = DateTime.UtcNow.AddHours(CanalEntryTimestampOffset);
+            }
+            else if (!inHarbor)
+            {
+                shipTest.CanalEntryTimestamp = null;
+            }
+
+            if (shipTest.IsUnderway())
+            {
+                if (shipTest.IsWithinFiftyMilesOfDuluth())
+                {
+                    if (shipTest.IsInDuluthSuperiorHarborForMoreThanHour())
+                    {
+                        if (shipTest.IsInStLouisBay())
+                        {
+                            shipTest.DerivedEta = CalculateEtaToDuluthFromStLouisBay(shipTest.Position, shipTest.Speed);
+                        }
+                        else if (shipTest.IsMovingTowardDuluth())
+                        {
+                            shipTest.DerivedEta = CalculateEtaToDuluth(shipTest.Position, shipTest.Speed);
+                        }
+                    }
+                    else if (!inHarbor && shipTest.IsHeadingTowardDuluth())
+                    {
+                        shipTest.DerivedEta = CalculateEtaToDuluth(shipTest.Position, shipTest.Speed);
+                    }
+                }
+                else if (shipTest.IsDestinationDuluth() && shipTest.IsMovingTowardDuluth())
+                {
+                    shipTest.DerivedEta = shipTest.Eta;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Ships in St. Louis bay have an Eta to Duluth calculated in a specific manner, based on triangulation from St. Louis Bay.
+        /// The method uses a 60/60/60 triangle between ship position and Duluth Canal position.
+        /// </summary>
+        /// <param name="shipPosition">The current coordinates of the ship.</param>
+        /// <param name="speed">The speed of the ship.</param>
+        /// <returns>The Eta of the ship to reach Duluth</returns>
+        private static DateTime CalculateEtaToDuluthFromStLouisBay(Position shipPosition, double speed)
+        {
+            //// first, calculate the direct distance to the canal and use it as the hypotenuse of a 30/60/90 triangle
+            var directLineDistance = GeoHelper.DistanceBetweenCoord(Ports.Duluth, shipPosition);
+            //// next, find lengths of the opposite and adjacent sides (convert angle to radians)
+            var shipSideDistance = directLineDistance * SinSixtyDegrees;
+            var canalSideDistance = directLineDistance * CosSixtyDegrees;
+            //// last, d=rt provides time to travel in hours
+            var totalDistance = shipSideDistance + canalSideDistance;
+
+            return GetLagAdjustedDerivedEta(totalDistance, speed);
+        }
+
+        /// <summary>
+        /// This method calculates the Eta of a ship to Duluth.
+        /// </summary>
+        /// <param name="shipPosition">The current coordinates of the ship.</param>
+        /// <param name="speed">The speed of the ship.</param>
+        /// <returns>The Eta of the ship to reach Duluth</returns>
+        private static DateTime CalculateEtaToDuluth(Position shipPosition, double speed)
+        {
+            var directLineDistance = GeoHelper.DistanceBetweenCoord(Ports.Duluth, shipPosition);
+            return GetLagAdjustedDerivedEta(directLineDistance, speed);
+        }
+
+        /// <summary>
+        /// Once a ship's distance to the canal is known, calculate when the ship will reach the canal
+        /// and adjust for data lag within the system
+        /// </summary>
+        /// <param name="distance">a ship test object that has a distance to canal</param>
+        /// <param name="speed">a ship test reported speed</param>
+        /// <returns>Derived Eta time</returns>
+        private static DateTime GetLagAdjustedDerivedEta(double distance, double speed)
+        {
+            if (speed <= 0)
+                return DateTime.MaxValue;
+
+            return DateTime.UtcNow.AddHours(distance / speed) + DataLag;
+        }
+    }
+}
